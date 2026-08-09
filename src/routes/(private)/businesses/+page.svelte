@@ -5,6 +5,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import CrudToast, { type CrudToastKind } from '#lib/components/CrudToast.svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import { PUBLISH_STATUSES, PUBLISH_STATUS_LABELS } from '#lib/constants/publish-status';
 	import { formatShortDateTime } from '#lib/util/format-datetime';
 	import type { PageData } from './$types';
@@ -129,6 +130,7 @@
 
 	async function saveItem(event: Event) {
 		event.preventDefault();
+		if (saving || deleting) return;
 		saving = true;
 		try {
 			const payload = {
@@ -161,7 +163,7 @@
 	}
 
 	async function confirmDelete() {
-		if (!deleteTarget) return;
+		if (!deleteTarget || deleting || saving) return;
 		deleting = true;
 		try {
 			const res = await fetch(`/api/businesses/${deleteTarget.id}`, { method: 'DELETE' });
@@ -421,10 +423,7 @@
 				>
 					Cancel
 				</button>
-				<button type="submit" class="btn btn-primary cursor-pointer" disabled={saving}>
-					{#if saving}<span class="loading loading-spinner loading-sm"></span>{/if}
-					Save
-				</button>
+				<LoadingButton busy={saving} class="btn btn-primary">Save</LoadingButton>
 			</div>
 		</form>
 	</div>
@@ -449,15 +448,14 @@
 			>
 				Cancel
 			</button>
-			<button
+			<LoadingButton
 				type="button"
-				class="btn btn-error cursor-pointer"
+				busy={deleting}
+				class="btn btn-error"
 				onclick={confirmDelete}
-				disabled={deleting}
 			>
-				{#if deleting}<span class="loading loading-spinner loading-sm"></span>{/if}
 				Delete
-			</button>
+			</LoadingButton>
 		</div>
 	</div>
 	<form method="dialog" class="modal-backdrop">

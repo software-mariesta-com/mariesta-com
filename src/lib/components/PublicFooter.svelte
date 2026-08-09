@@ -36,14 +36,13 @@
 	<nav>
 		<h6 class="footer-title">Company</h6>
 		<a href="/about" class="link link-hover cursor-pointer">About us</a>
-		<a href="/home#about" class="link link-hover cursor-pointer">Contact</a>
+		<a href="/contact" class="link link-hover cursor-pointer">Contact</a>
 		<a href="/careers" class="link link-hover cursor-pointer">Jobs</a>
-		<a href="/home#about" class="link link-hover cursor-pointer">Press kit</a>
 	</nav>
 	<nav>
 		<h6 class="footer-title">Legal</h6>
 		<a href="/home" class="link link-hover cursor-pointer">Terms of use</a>
-		<a href="/home" class="link link-hover cursor-pointer">Privacy policy</a>
-		<a href="/home" class="link link-hover cursor-pointer">Cookie policy</a>
+		<a href="/privacy-policy" class="link link-hover cursor-pointer">Privacy policy</a>
+		<a href="/cookie-policy" class="link link-hover cursor-pointer">Cookie policy</a>
 	</nav>
 </footer>

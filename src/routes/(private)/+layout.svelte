@@ -17,6 +17,7 @@
 	import { APP_VERSION } from '#lib/constants/app';
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 	import type { PermissionSection } from '#lib/constants/permissions';
+	import NavProgress from '#lib/components/NavProgress.svelte';
 	import type { LayoutServerData } from './$types';
 
 	let { data, children }: { data: LayoutServerData; children: Snippet } = $props();
@@ -49,6 +50,7 @@
 </script>
 
 <div class="drawer lg:drawer-open">
+	<NavProgress />
 	<input id="admin-drawer" type="checkbox" class="drawer-toggle" />
 
 	<div class="drawer-content relative min-h-svh bg-base-200">

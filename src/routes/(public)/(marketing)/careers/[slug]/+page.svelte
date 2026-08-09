@@ -33,9 +33,9 @@
 	};
 
 	let { data }: { data: PageData } = $props();
-	let job = $derived(data.job as CareerJob);
+	let job = $derived(data.job as unknown as CareerJob);
 
-	const pageUrl = $derived(`https://mariesta.org/careers/${job.slug}`);
+	const pageUrl = $derived(`https://mariesta.com/careers/${job.slug}`);
 	const jsonLd = $derived(buildJobPostingJsonLd(job, pageUrl));
 	const metaDescription = $derived(
 		job.description.length > 155 ? `${job.description.slice(0, 152)}...` : job.description
@@ -55,6 +55,33 @@
 		const amount = (job.salaryMin ?? job.salaryMax)!.toLocaleString();
 		return `${currency} ${amount} ${unit}`.trim();
 	});
+
+	function pageMotion(node: HTMLElement) {
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (reduceMotion) return;
+
+		let cancelled = false;
+		let revert: (() => void) | undefined;
+
+		void import('gsap').then(({ default: gsap }) => {
+			if (cancelled) return;
+			const ctx = gsap.context(() => {
+				const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+				tl.from('.job-back', { y: 10, autoAlpha: 0, duration: 0.35 })
+					.from('.job-brand', { y: 18, autoAlpha: 0, duration: 0.5 }, '-=0.2')
+					.from('.job-title', { y: 16, autoAlpha: 0, duration: 0.5 }, '-=0.3')
+					.from('.job-meta', { y: 12, autoAlpha: 0, duration: 0.4 }, '-=0.25')
+					.from('.job-body', { y: 14, autoAlpha: 0, duration: 0.45 }, '-=0.2')
+					.from('.job-apply', { y: 10, autoAlpha: 0, duration: 0.35 }, '-=0.18');
+			}, node);
+			revert = () => ctx.revert();
+		});
+
+		return () => {
+			cancelled = true;
+			revert?.();
+		};
+	}
 </script>
 
 <svelte:head>
@@ -65,7 +92,7 @@
 	<meta property="og:description" content={metaDescription} />
 	<meta property="og:url" content={pageUrl} />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.org/og-default.png" />
+	<meta property="og:image" content="https://mariesta.com/og-default.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="{job.title} | Careers | MARIESTA" />
 	<meta name="twitter:description" content={metaDescription} />
@@ -78,22 +105,25 @@
 		aria-hidden="true"
 	></div>
 
-	<article class="relative z-10 mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-		<p class="mb-4">
-			<a href={localizeHref('/careers')} class="link link-hover text-sm cursor-pointer"
+	<article
+		class="relative z-10 mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+		{@attach pageMotion}
+	>
+		<p class="job-back mb-4">
+			<a href={localizeHref('/careers')} class="link link-hover cursor-pointer text-sm"
 				>Back to openings</a
 			>
 		</p>
 
 		<header class="mb-8">
-			<p class="logo-wordmark text-2xl">MARIESTA</p>
-			<h1 class="mt-3 text-2xl font-bold text-base-content sm:text-3xl">{job.title}</h1>
+			<p class="job-brand logo-wordmark text-2xl">MARIESTA</p>
+			<h1 class="job-title text-base-content mt-3 text-2xl font-bold sm:text-3xl">{job.title}</h1>
 			{#if job.business?.name || job.departmentLabel}
 				<p class="text-base-content/60 mt-1 text-sm">
 					{[job.business?.name, job.departmentLabel].filter(Boolean).join(' · ')}
 				</p>
 			{/if}
-			<div class="mt-4 flex flex-wrap gap-2">
+			<div class="job-meta mt-4 flex flex-wrap gap-2">
 				<span class="badge badge-outline">{job.location}</span>
 				<span class="badge badge-outline">{EMPLOYMENT_TYPE_LABELS[job.employmentType]}</span>
 				<span class="badge badge-outline">{WORKPLACE_TYPE_LABELS[job.workplaceType]}</span>
@@ -103,12 +133,12 @@
 			</div>
 		</header>
 
-		<div class="prose prose-base max-w-none whitespace-pre-wrap text-base-content">
+		<div class="job-body prose prose-base text-base-content max-w-none whitespace-pre-wrap">
 			{job.description}
 		</div>
 
 		{#if applyHref}
-			<div class="mt-10">
+			<div class="job-apply mt-10">
 				<a
 					href={applyHref}
 					class="btn btn-primary cursor-pointer"

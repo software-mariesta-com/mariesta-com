@@ -1,15 +1,17 @@
+import { listPublishedMembers } from '#lib/remotes/member.remote';
+import { listPublishedPartners } from '#lib/remotes/partner.remote';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	const [businessesRes, partnersRes, membersRes] = await Promise.all([
-		fetch('/api/public/businesses'),
-		fetch('/api/public/partners'),
-		fetch('/api/public/members')
+export const load: PageServerLoad = async ({ parent }) => {
+	const { businesses } = await parent();
+	const [partners, members] = await Promise.all([
+		listPublishedPartners(),
+		listPublishedMembers()
 	]);
 
-	const businesses = businessesRes.ok ? await businessesRes.json() : [];
-	const partners = partnersRes.ok ? await partnersRes.json() : [];
-	const members = membersRes.ok ? await membersRes.json() : [];
-
-	return { businesses, partners, members };
+	return {
+		businesses,
+		partners: JSON.parse(JSON.stringify(partners)),
+		members: JSON.parse(JSON.stringify(members))
+	};
 };

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import type { PageData } from './$types';
 
 	type BusinessListItem = {
@@ -12,6 +13,36 @@
 	let { data }: { data: PageData } = $props();
 	let items = $derived(data.items as BusinessListItem[]);
 
+	function heroMotion(node: HTMLElement) {
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (reduceMotion) return;
+
+		let cancelled = false;
+		let revert: (() => void) | undefined;
+
+		void import('gsap').then(({ default: gsap }) => {
+			if (cancelled) return;
+			const ctx = gsap.context(() => {
+				const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+				tl.from('.biz-brand', { y: 24, autoAlpha: 0, duration: 0.65 }).from(
+					'.biz-title',
+					{ y: 16, autoAlpha: 0, duration: 0.5 },
+					'-=0.35'
+				);
+			}, node);
+			revert = () => ctx.revert();
+		});
+
+		return () => {
+			cancelled = true;
+			revert?.();
+		};
+	}
+
+	function gridReveal(node: HTMLElement) {
+		return scrollReveal(node, { stagger: 0.07, y: 22, start: 'top 88%' });
+	}
+
 	const cardClass =
 		'card card-border bg-base-100 h-full transition-colors hover:border-primary/40';
 
@@ -19,13 +50,13 @@
 		'@context': 'https://schema.org',
 		'@type': 'CollectionPage',
 		name: 'Businesses | MARIESTA',
-		url: 'https://mariesta.org/companies',
+		url: 'https://mariesta.com/companies',
 		description:
 			'Explore the businesses in the MARIESTA group. Software and ventures built on craft, ownership, and community.',
 		isPartOf: {
 			'@type': 'WebSite',
 			name: 'MARIESTA',
-			url: 'https://mariesta.org'
+			url: 'https://mariesta.com'
 		}
 	};
 </script>
@@ -36,15 +67,15 @@
 		name="description"
 		content="Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites."
 	/>
-	<link rel="canonical" href="https://mariesta.org/companies" />
+	<link rel="canonical" href="https://mariesta.com/companies" />
 	<meta property="og:title" content="Businesses | MARIESTA" />
 	<meta
 		property="og:description"
 		content="Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites."
 	/>
-	<meta property="og:url" content="https://mariesta.org/companies" />
+	<meta property="og:url" content="https://mariesta.com/companies" />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.org/og-default.png" />
+	<meta property="og:image" content="https://mariesta.com/og-default.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Businesses | MARIESTA" />
 	<meta
@@ -56,19 +87,16 @@
 	</script>
 </svelte:head>
 
-<div class="relative bg-base-200">
+<div class="relative overflow-hidden bg-base-200">
 	<div
 		class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_52%)]"
 		aria-hidden="true"
 	></div>
 
 	<div class="relative z-10 mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-		<header class="mb-10 max-w-3xl">
-			<p class="logo-wordmark text-3xl sm:text-4xl">MARIESTA</p>
-			<h1 class="mt-3 text-2xl font-bold text-base-content sm:text-3xl">Our businesses</h1>
-			<p class="text-base-content/70 mt-2 max-w-xl text-base">
-				Every published venture in the group. Explore what we build.
-			</p>
+		<header class="mb-10 max-w-3xl" {@attach heroMotion}>
+			<p class="biz-brand logo-wordmark text-3xl sm:text-4xl">MARIESTA</p>
+			<h1 class="biz-title text-base-content mt-3 text-2xl font-bold sm:text-3xl">Our businesses</h1>
 		</header>
 
 		{#if data.loadError}
@@ -84,13 +112,13 @@
 				<div class="card-body gap-3">
 					<span class="badge badge-soft w-fit">{business.category}</span>
 					<h2 class="card-title text-lg">{business.name}</h2>
-					<p class="text-sm text-base-content/70">{business.blurb}</p>
+					<p class="text-base-content/70 text-sm">{business.blurb}</p>
 				</div>
 			{/snippet}
 
-			<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+			<ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" {@attach gridReveal}>
 				{#each items as business (business.id)}
-					<li>
+					<li data-reveal-item>
 						{#if business.linkUrl}
 							<a
 								href={business.linkUrl}

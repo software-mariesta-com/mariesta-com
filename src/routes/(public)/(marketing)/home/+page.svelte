@@ -1,9 +1,9 @@
 <script lang="ts">
-	import gsap from 'gsap';
 	import MariestaGroupIllustration from '#lib/components/MariestaGroupIllustration.svelte';
 	import OurBusinesses from '#lib/components/OurBusinesses.svelte';
 	import OurPartners from '#lib/components/OurPartners.svelte';
 	import OurMembers from '#lib/components/OurMembers.svelte';
+	import JoinCommunity from '#lib/components/JoinCommunity.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -12,50 +12,60 @@
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		if (reduceMotion) return;
 
-		const ctx = gsap.context(() => {
-			const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+		let cancelled = false;
+		let revert: (() => void) | undefined;
 
-			tl.from('.hero-brand', { y: 28, autoAlpha: 0, duration: 0.7 })
-				.from('.hero-lead', { y: 16, autoAlpha: 0, duration: 0.5 }, '-=0.3')
-				.from('.hero-cta', { y: 12, autoAlpha: 0, duration: 0.45 }, '-=0.22')
-				.from('.hero-illu', { y: 24, autoAlpha: 0, duration: 0.65 }, '-=0.35')
-				.from(
-					'.illu-hub',
-					{ scale: 0.72, autoAlpha: 0, duration: 0.65, transformOrigin: '50% 50%' },
-					'-=0.5'
-				)
-				.from(
-					'.illu-node',
-					{
-						scale: 0.85,
-						autoAlpha: 0,
-						duration: 0.5,
-						stagger: 0.08,
-						transformOrigin: '50% 50%'
-					},
-					'-=0.4'
-				)
-				.from('.illu-spoke, .illu-orbit', { autoAlpha: 0, duration: 0.6 }, '-=0.35');
+		void import('gsap').then(({ default: gsap }) => {
+			if (cancelled) return;
+			const ctx = gsap.context(() => {
+				const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-			gsap.to('.illu-hub', {
-				y: -6,
-				duration: 2.8,
-				ease: 'sine.inOut',
-				yoyo: true,
-				repeat: -1
-			});
+				tl.from('.hero-brand', { y: 28, autoAlpha: 0, duration: 0.7 })
+					.from('.hero-lead', { y: 16, autoAlpha: 0, duration: 0.5 }, '-=0.3')
+					.from('.hero-cta', { y: 12, autoAlpha: 0, duration: 0.45 }, '-=0.22')
+					.from('.hero-illu', { y: 24, autoAlpha: 0, duration: 0.65 }, '-=0.35')
+					.from(
+						'.illu-hub',
+						{ scale: 0.72, autoAlpha: 0, duration: 0.65, transformOrigin: '50% 50%' },
+						'-=0.5'
+					)
+					.from(
+						'.illu-node',
+						{
+							scale: 0.85,
+							autoAlpha: 0,
+							duration: 0.5,
+							stagger: 0.08,
+							transformOrigin: '50% 50%'
+						},
+						'-=0.4'
+					)
+					.from('.illu-spoke, .illu-orbit', { autoAlpha: 0, duration: 0.6 }, '-=0.35');
 
-			gsap.to('.illu-glow', {
-				scale: 1.06,
-				duration: 3.4,
-				ease: 'sine.inOut',
-				yoyo: true,
-				repeat: -1,
-				transformOrigin: '50% 50%'
-			});
-		}, node);
+				gsap.to('.illu-hub', {
+					y: -6,
+					duration: 2.8,
+					ease: 'sine.inOut',
+					yoyo: true,
+					repeat: -1
+				});
 
-		return () => ctx.revert();
+				gsap.to('.illu-glow', {
+					scale: 1.06,
+					duration: 3.4,
+					ease: 'sine.inOut',
+					yoyo: true,
+					repeat: -1,
+					transformOrigin: '50% 50%'
+				});
+			}, node);
+			revert = () => ctx.revert();
+		});
+
+		return () => {
+			cancelled = true;
+			revert?.();
+		};
 	}
 </script>
 
@@ -65,7 +75,7 @@
 		name="description"
 		content="MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. Steady pay, shared upside, and room to grow a life."
 	/>
-	<link rel="canonical" href="https://mariesta.org/home" />
+	<link rel="canonical" href="https://mariesta.com/home" />
 	<meta
 		property="og:title"
 		content="MARIESTA | Own your craft. Share the upside. Grow in community."
@@ -74,9 +84,9 @@
 		property="og:description"
 		content="A community of ventures where people create freely, own together, and share success."
 	/>
-	<meta property="og:url" content="https://mariesta.org/home" />
+	<meta property="og:url" content="https://mariesta.com/home" />
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.org/og-default.png" />
+	<meta property="og:image" content="https://mariesta.com/og-default.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta
 		name="twitter:title"
@@ -90,7 +100,7 @@
 		'@context': 'https://schema.org',
 		'@type': 'Organization',
 		name: 'MARIESTA',
-		url: 'https://mariesta.org',
+		url: 'https://mariesta.com',
 		slogan: 'Own your craft. Share the upside. Grow in community.',
 		description:
 			'A community of businesses built on expression, culture, sharing, and ownership.'
@@ -149,7 +159,11 @@
 		</section>
 
 		<OurBusinesses businesses={data.businesses} />
+		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
 		<OurPartners partners={data.partners} />
+		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
 		<OurMembers members={data.members} />
+		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
+		<JoinCommunity />
 	</div>
 </div>

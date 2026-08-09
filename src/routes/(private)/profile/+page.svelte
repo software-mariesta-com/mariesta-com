@@ -5,12 +5,19 @@
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import ShieldOff from '@lucide/svelte/icons/shield-off';
 	import AuthToast from '#lib/components/AuthToast.svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import OtpCodeField from '#lib/components/OtpCodeField.svelte';
 	import PasswordField from '#lib/components/PasswordField.svelte';
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
+	import { withFormPending } from '#lib/util/form-pending';
 	import type { ActionData, PageServerData } from './$types';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
+
+	let disablePending = $state(false);
+	let verifyPending = $state(false);
+	let enablePending = $state(false);
+	let logoutPending = $state(false);
 
 	const toastMessage = $derived(form?.message ?? form?.success ?? null);
 	const toastKind = $derived<'success' | 'error'>(form?.success ? 'success' : 'error');
@@ -48,7 +55,12 @@
 
 		{#if data.twoFactorEnabled && !setupPending}
 			<p class="mt-2 text-sm text-success">2FA is enabled on your account.</p>
-			<form method="POST" action="?/disable2fa" class="mt-4 grid gap-4" use:enhance>
+			<form
+				method="POST"
+				action="?/disable2fa"
+				class="mt-4 grid gap-4"
+				use:enhance={withFormPending((v) => (disablePending = v))}
+			>
 				<PasswordField
 					id="disable-2fa-password"
 					name="password"
@@ -56,10 +68,10 @@
 					autocomplete="current-password"
 					revealable={false}
 				/>
-				<button class="btn btn-outline btn-error cursor-pointer" type="submit">
+				<LoadingButton busy={disablePending} class="btn btn-outline btn-error">
 					<ShieldOff class="h-5 w-5" aria-hidden="true" />
 					Turn off 2FA
-				</button>
+				</LoadingButton>
 			</form>
 		{:else if setupPending && totpURI}
 			<p class="mt-2 text-sm text-base-content/70">
@@ -84,7 +96,12 @@
 					</ul>
 				</div>
 			{/if}
-			<form method="POST" action="?/verify2fa" class="mt-4 grid gap-4" use:enhance>
+			<form
+				method="POST"
+				action="?/verify2fa"
+				class="mt-4 grid gap-4"
+				use:enhance={withFormPending((v) => (verifyPending = v))}
+			>
 				<fieldset class="fieldset">
 					<legend class="fieldset-legend">
 						Authenticator code<span
@@ -94,16 +111,21 @@
 					</legend>
 					<OtpCodeField id="verify-2fa-code" name="code" />
 				</fieldset>
-				<button class="btn btn-primary cursor-pointer" type="submit">
+				<LoadingButton busy={verifyPending} class="btn btn-primary">
 					<ShieldCheck class="h-5 w-5" aria-hidden="true" />
 					Confirm 2FA
-				</button>
+				</LoadingButton>
 			</form>
 		{:else}
 			<p class="mt-2 text-sm text-base-content/70">
 				Add an authenticator app for a second step when you sign in.
 			</p>
-			<form method="POST" action="?/enable2fa" class="mt-4 grid gap-4" use:enhance>
+			<form
+				method="POST"
+				action="?/enable2fa"
+				class="mt-4 grid gap-4"
+				use:enhance={withFormPending((v) => (enablePending = v))}
+			>
 				<PasswordField
 					id="enable-2fa-password"
 					name="password"
@@ -111,10 +133,10 @@
 					autocomplete="current-password"
 					revealable={false}
 				/>
-				<button class="btn btn-outline cursor-pointer" type="submit">
+				<LoadingButton busy={enablePending} class="btn btn-outline">
 					<ShieldCheck class="h-5 w-5" aria-hidden="true" />
 					Set up 2FA
-				</button>
+				</LoadingButton>
 			</form>
 		{/if}
 	</section>
@@ -129,11 +151,18 @@
 				<KeyRound class="h-5 w-5" aria-hidden="true" />
 				Forgot password
 			</a>
-			<form method="POST" action={AUTH_ROUTES.logout}>
-				<button class="btn btn-error btn-block cursor-pointer" type="submit">
+			<form
+				method="POST"
+				action={AUTH_ROUTES.logout}
+				onsubmit={() => {
+					if (logoutPending) return;
+					logoutPending = true;
+				}}
+			>
+				<LoadingButton busy={logoutPending} class="btn btn-error btn-block">
 					<LogOut class="h-5 w-5" aria-hidden="true" />
 					Logout
-				</button>
+				</LoadingButton>
 			</form>
 		</div>
 	</section>

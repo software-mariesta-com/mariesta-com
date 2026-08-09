@@ -1,24 +1,23 @@
-import gsap from 'gsap';
-
-/** Soft fade-up when a home section enters the viewport. */
+/** Soft fade-up when a home section enters the viewport. Content stays visible without JS. */
 export function sectionReveal(node: HTMLElement) {
 	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	if (reduceMotion) return;
 
 	const target = node.querySelector<HTMLElement>('.home-section-inner') ?? node;
-	gsap.set(target, { autoAlpha: 0, y: 32 });
+	let played = false;
 
 	const io = new IntersectionObserver(
-		(entries) => {
+		async (entries) => {
 			for (const entry of entries) {
-				if (!entry.isIntersecting) continue;
-				gsap.to(target, {
-					autoAlpha: 1,
-					y: 0,
-					duration: 0.8,
-					ease: 'power2.out'
-				});
+				if (!entry.isIntersecting || played) continue;
+				played = true;
 				io.disconnect();
+				const { default: gsap } = await import('gsap');
+				gsap.fromTo(
+					target,
+					{ autoAlpha: 0.92, y: 20 },
+					{ autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out', clearProps: 'transform' }
+				);
 			}
 		},
 		{ threshold: 0.12, rootMargin: '0px 0px -6% 0px' }
@@ -27,6 +26,5 @@ export function sectionReveal(node: HTMLElement) {
 	io.observe(node);
 	return () => {
 		io.disconnect();
-		gsap.killTweensOf(target);
 	};
 }

@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm';
 import { loginRedirectUrl } from '#lib/constants/auth-routes';
 import { db } from '#lib/server/db';
 import { user as userTable } from '#lib/server/db/schema';
-import { ensureOwnerExists } from '#lib/server/ensure-owner';
 import { buildCapabilities, normalizeRole, type AuthzUser } from '#lib/server/permissions';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
@@ -11,8 +10,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
 		redirect(303, loginRedirectUrl(url.pathname));
 	}
-
-	await ensureOwnerExists();
 
 	const row = await db.query.user.findFirst({
 		where: eq(userTable.id, locals.user.id),

@@ -1,6 +1,6 @@
 <!--
 	Custom illustration: Mariesta as the central group hub with
-	child ventures (software, hospitality, health, and more) connected around it.
+	ventures (software, hospitality, health, and more) connected around it.
 -->
 <svg
 	class="mariesta-group-illu h-auto w-full max-w-xl lg:max-w-2xl"

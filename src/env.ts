@@ -45,6 +45,16 @@ export const variables = defineEnvVars({
 		description: 'From address for auth emails (usually the same as SMTP_USER for Gmail).',
 		schema: optionalString
 	},
+	CONTACT_TO: {
+		description:
+			'Inbox for public contact form messages. Falls back to SMTP_FROM when unset.',
+		schema: optionalString
+	},
+	CONTACT_PUBLIC_EMAIL: {
+		description:
+			'Public contact email shown on /contact (e.g. hello@mariesta.com). Optional.',
+		schema: optionalString
+	},
 	// Named TIGRIS_* (not AWS_*) so Netlify accepts them; AWS_* is reserved there.
 	TIGRIS_ACCESS_KEY_ID: {
 		description: 'Tigris / S3 access key ID for object storage uploads.',
