@@ -142,3 +142,35 @@ html {
 		display: none;
 	}
 }
+
+/* Scroll / section reveals: JS adds pending then ready; without JS content stays visible */
+@media (prefers-reduced-motion: no-preference) {
+	.scroll-reveal-pending [data-reveal-item],
+	.scroll-reveal-pending.scroll-reveal-self {
+		opacity: 0;
+		transform: translateY(var(--reveal-y, 28px));
+	}
+
+	.scroll-reveal-ready [data-reveal-item],
+	.scroll-reveal-ready.scroll-reveal-self {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity var(--reveal-duration, 0.7s) cubic-bezier(0.22, 1, 0.36, 1),
+			transform var(--reveal-duration, 0.7s) cubic-bezier(0.22, 1, 0.36, 1);
+		transition-delay: calc(var(--reveal-stagger, 0.08s) * var(--reveal-i, 0));
+	}
+
+	.section-reveal-pending {
+		opacity: 0.92;
+		transform: translateY(20px);
+	}
+
+	.section-reveal-ready {
+		opacity: 1;
+		transform: translateY(0);
+		transition:
+			opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+			transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+}

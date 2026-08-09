@@ -1,6 +1,8 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import { breadcrumbJsonLd, webPageJsonLd } from '#lib/tool/seo';
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -27,48 +29,23 @@
 	}
 
 	const lastUpdated = '9 August 2026';
-
-	const jsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'WebPage',
-		name: 'Privacy Policy | MARIESTA',
-		url: 'https://mariesta.com/privacy-policy',
-		description:
-			'How MARIESTA collects, uses, stores, and protects personal data on mariesta.com.',
-		isPartOf: {
-			'@type': 'WebSite',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com'
-		},
-		dateModified: '2026-08-09'
-	};
+	const title = 'Privacy Policy | MARIESTA';
+	const description =
+		'Read how MARIESTA collects, uses, stores, and protects personal data on mariesta.com, including contact forms, accounts, and public profiles.';
+	const jsonLd = [
+		webPageJsonLd({
+			name: title,
+			path: '/privacy-policy',
+			description
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Privacy policy', path: '/privacy-policy' }
+		])
+	];
 </script>
 
-<svelte:head>
-	<title>Privacy Policy | MARIESTA</title>
-	<meta
-		name="description"
-		content="Read how MARIESTA collects, uses, stores, and protects personal data on mariesta.com, including contact forms, accounts, and public profiles."
-	/>
-	<link rel="canonical" href="https://mariesta.com/privacy-policy" />
-	<meta property="og:title" content="Privacy Policy | MARIESTA" />
-	<meta
-		property="og:description"
-		content="How MARIESTA collects, uses, stores, and protects personal data on mariesta.com."
-	/>
-	<meta property="og:url" content="https://mariesta.com/privacy-policy" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Privacy Policy | MARIESTA" />
-	<meta
-		name="twitter:description"
-		content="How MARIESTA collects, uses, stores, and protects personal data on mariesta.com."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/privacy-policy" {jsonLd} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import {
 		EMPLOYMENT_TYPE_LABELS,
@@ -7,6 +8,7 @@
 		type WorkplaceType
 	} from '#lib/constants/career';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import { breadcrumbJsonLd, collectionPageJsonLd } from '#lib/tool/seo';
 	import type { PageData } from './$types';
 
 	type CareerListItem = {
@@ -22,6 +24,26 @@
 
 	let { data }: { data: PageData } = $props();
 	let items = $derived(data.items as CareerListItem[]);
+	const isEmpty = $derived(!data.loadError && items.length === 0);
+
+	const title = 'Careers at MARIESTA | Open roles';
+	const description =
+		'Explore open roles at MARIESTA. Join a community of businesses built on craft, ownership, and shared upside.';
+	const jsonLd = $derived([
+		collectionPageJsonLd({
+			name: title,
+			path: '/careers',
+			description,
+			itemList: items.map((item) => ({
+				name: item.title,
+				path: `/careers/${item.slug}`
+			}))
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Careers', path: '/careers' }
+		])
+	]);
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -52,28 +74,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Careers at MARIESTA | Open roles</title>
-	<meta
-		name="description"
-		content="Explore open roles at MARIESTA. Join a community of businesses built on craft, ownership, and shared upside."
-	/>
-	<link rel="canonical" href="https://mariesta.com/careers" />
-	<meta property="og:title" content="Careers at MARIESTA | Open roles" />
-	<meta
-		property="og:description"
-		content="Explore open roles at MARIESTA. Join a community of businesses built on craft, ownership, and shared upside."
-	/>
-	<meta property="og:url" content="https://mariesta.com/careers" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Careers at MARIESTA | Open roles" />
-	<meta
-		name="twitter:description"
-		content="Explore open roles at MARIESTA. Join a community of businesses built on craft, ownership, and shared upside."
-	/>
-</svelte:head>
+<SeoHead {title} {description} path="/careers" {jsonLd} noindex={isEmpty} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

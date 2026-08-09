@@ -66,7 +66,9 @@
 
 	onMount(() => {
 		syncFromStore();
-		if (!hasConsentRecord()) {
+		if (consumeOpenCookieSettingsRequest()) {
+			showCustomize();
+		} else if (!hasConsentRecord()) {
 			showBanner();
 		}
 		return subscribeConsent(() => {

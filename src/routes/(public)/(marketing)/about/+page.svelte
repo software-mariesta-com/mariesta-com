@@ -1,6 +1,12 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import {
+		breadcrumbJsonLd,
+		organizationJsonLd,
+		webPageJsonLd
+	} from '#lib/tool/seo';
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,16 +24,44 @@
 					.from('.about-headline', { y: 18, autoAlpha: 0, duration: 0.55 }, '-=0.3')
 					.from('.about-cta a', { y: 12, autoAlpha: 0, duration: 0.4, stagger: 0.08 }, '-=0.2');
 
-				gsap.to('.about-glow', {
-					scale: 1.12,
-					autoAlpha: 0.9,
-					duration: 3.2,
-					ease: 'sine.inOut',
-					yoyo: true,
-					repeat: -1
-				});
+				let glowTween: { kill: () => void } | undefined;
+
+				const startAmbient = () => {
+					if (glowTween) return;
+					glowTween = gsap.to('.about-glow', {
+						scale: 1.12,
+						autoAlpha: 0.9,
+						duration: 3.2,
+						ease: 'sine.inOut',
+						yoyo: true,
+						repeat: -1
+					});
+				};
+
+				const stopAmbient = () => {
+					glowTween?.kill();
+					glowTween = undefined;
+					gsap.set('.about-glow', { scale: 1, autoAlpha: 1 });
+				};
+
+				const io = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) startAmbient();
+							else stopAmbient();
+						}
+					},
+					{ threshold: 0.15 }
+				);
+				io.observe(node);
+
+				revert = () => {
+					io.disconnect();
+					stopAmbient();
+					ctx.revert();
+				};
 			}, node);
-			revert = () => ctx.revert();
+			if (!revert) revert = () => ctx.revert();
 		});
 
 		return () => {
@@ -66,49 +100,25 @@
 		}
 	] as const;
 
-	const jsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'AboutPage',
-		name: 'About MARIESTA',
-		url: 'https://mariesta.com/about',
-		description:
-			'MARIESTA is the head office that manages businesses of all kinds, built on expression, culture, sharing, and ownership.',
-		mainEntity: {
-			'@type': 'Organization',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com',
-			slogan: 'Own your craft. Share the upside. Grow in community.',
-			description:
-				'A head office that manages businesses of all kinds, built on expression, culture, sharing, and ownership.'
-		}
-	};
+	const title = 'About MARIESTA';
+	const description =
+		'MARIESTA is the head office that manages businesses of all kinds. Expression, culture, sharing, and ownership guide the group.';
+	const jsonLd = [
+		organizationJsonLd(),
+		webPageJsonLd({
+			type: 'AboutPage',
+			name: title,
+			path: '/about',
+			description
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'About', path: '/about' }
+		])
+	];
 </script>
 
-<svelte:head>
-	<title>About MARIESTA</title>
-	<meta
-		name="description"
-		content="MARIESTA is the head office that manages businesses of all kinds. Expression, culture, sharing, and ownership guide the group."
-	/>
-	<link rel="canonical" href="https://mariesta.com/about" />
-	<meta property="og:title" content="About MARIESTA" />
-	<meta
-		property="og:description"
-		content="The MARIESTA head office stewards businesses where people create freely, own together, and share success."
-	/>
-	<meta property="og:url" content="https://mariesta.com/about" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="About MARIESTA" />
-	<meta
-		name="twitter:description"
-		content="The MARIESTA head office stewards businesses where people create freely, own together, and share success."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/about" {jsonLd} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

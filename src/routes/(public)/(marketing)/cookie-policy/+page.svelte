@@ -1,7 +1,9 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import { localizeHref } from '#lib/paraglide/runtime';
 	import { openCookieSettings } from '#lib/store/local-storage/cookie-consent';
+	import { breadcrumbJsonLd, webPageJsonLd } from '#lib/tool/seo';
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -28,48 +30,23 @@
 	}
 
 	const lastUpdated = '9 August 2026';
-
-	const jsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'WebPage',
-		name: 'Cookie Policy | MARIESTA',
-		url: 'https://mariesta.com/cookie-policy',
-		description:
-			'How MARIESTA uses cookies and similar technologies on mariesta.com, including consent choices for preferences and analytics.',
-		isPartOf: {
-			'@type': 'WebSite',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com'
-		},
-		dateModified: '2026-08-09'
-	};
+	const title = 'Cookie Policy | MARIESTA';
+	const description =
+		'Learn how MARIESTA uses cookies, what is essential, and how to manage Preferences and Analytics consent on mariesta.com.';
+	const jsonLd = [
+		webPageJsonLd({
+			name: title,
+			path: '/cookie-policy',
+			description
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Cookie policy', path: '/cookie-policy' }
+		])
+	];
 </script>
 
-<svelte:head>
-	<title>Cookie Policy | MARIESTA</title>
-	<meta
-		name="description"
-		content="Learn how MARIESTA uses cookies, what is essential, and how to manage Preferences and Analytics consent on mariesta.com."
-	/>
-	<link rel="canonical" href="https://mariesta.com/cookie-policy" />
-	<meta property="og:title" content="Cookie Policy | MARIESTA" />
-	<meta
-		property="og:description"
-		content="Learn how MARIESTA uses cookies and how to manage your consent choices."
-	/>
-	<meta property="og:url" content="https://mariesta.com/cookie-policy" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Cookie Policy | MARIESTA" />
-	<meta
-		name="twitter:description"
-		content="Learn how MARIESTA uses cookies and how to manage your consent choices."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/cookie-policy" {jsonLd} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

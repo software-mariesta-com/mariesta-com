@@ -1,6 +1,8 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import { breadcrumbJsonLd, collectionPageJsonLd } from '#lib/tool/seo';
 	import type { PageData } from './$types';
 
 	type MemberItem = {
@@ -13,6 +15,26 @@
 
 	let { data }: { data: PageData } = $props();
 	let items = $derived(data.items as MemberItem[]);
+	const isEmpty = $derived(!data.loadError && items.length === 0);
+
+	const title = 'Members | MARIESTA';
+	const description =
+		'Meet members across the MARIESTA group. People building businesses with craft, ownership, and shared upside.';
+	const jsonLd = $derived([
+		collectionPageJsonLd({
+			name: title,
+			path: '/our-members',
+			description,
+			itemList: items.map((m) => ({
+				name: m.name,
+				...(m.linkUrl ? { url: m.linkUrl } : {})
+			}))
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Members', path: '/our-members' }
+		])
+	]);
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -44,47 +66,9 @@
 
 	const cardClass =
 		'rounded-box border border-base-300/80 bg-base-100/40 flex flex-col items-center gap-3 p-5 transition-colors hover:border-primary/40 hover:bg-base-100';
-
-	const jsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'CollectionPage',
-		name: 'Members | MARIESTA',
-		url: 'https://mariesta.com/our-members',
-		description:
-			'People across the MARIESTA group: craft, ownership, and community in practice.',
-		isPartOf: {
-			'@type': 'WebSite',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com'
-		}
-	};
 </script>
 
-<svelte:head>
-	<title>Members | MARIESTA</title>
-	<meta
-		name="description"
-		content="Meet members across the MARIESTA group. People building businesses with craft, ownership, and shared upside."
-	/>
-	<link rel="canonical" href="https://mariesta.com/our-members" />
-	<meta property="og:title" content="Members | MARIESTA" />
-	<meta
-		property="og:description"
-		content="Meet members across the MARIESTA group. People building businesses with craft, ownership, and shared upside."
-	/>
-	<meta property="og:url" content="https://mariesta.com/our-members" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Members | MARIESTA" />
-	<meta
-		name="twitter:description"
-		content="Meet members across the MARIESTA group. People building businesses with craft, ownership, and shared upside."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/our-members" {jsonLd} noindex={isEmpty} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

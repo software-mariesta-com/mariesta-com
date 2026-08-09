@@ -21,7 +21,7 @@ export const GET: RequestHandler = async ({ params }) => {
 		return new Response(Buffer.from(bytes), {
 			headers: {
 				'Content-Type': object.ContentType || 'application/octet-stream',
-				'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+				'Cache-Control': 'public, max-age=604800, stale-while-revalidate=2592000',
 				...(object.ETag ? { ETag: object.ETag } : {})
 			}
 		});

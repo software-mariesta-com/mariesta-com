@@ -49,6 +49,10 @@
 	}
 </script>
 
+<svelte:head>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 <div class="drawer lg:drawer-open">
 	<NavProgress />
 	<input id="admin-drawer" type="checkbox" class="drawer-toggle" />

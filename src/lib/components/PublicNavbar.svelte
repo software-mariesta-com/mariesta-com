@@ -12,8 +12,10 @@
 		nav_about,
 		nav_businesses,
 		nav_career,
+		nav_contact,
 		nav_home,
 		nav_language,
+		nav_members,
 		nav_partners,
 		nav_theme,
 		nav_theme_dark,
@@ -54,7 +56,9 @@
 		{ href: '/about', hash: null, label: () => nav_about() },
 		{ href: '/companies', hash: null, label: () => nav_businesses() },
 		{ href: '/our-partners', hash: null, label: () => nav_partners() },
-		{ href: '/careers', hash: null, label: () => nav_career() }
+		{ href: '/our-members', hash: null, label: () => nav_members() },
+		{ href: '/careers', hash: null, label: () => nav_career() },
+		{ href: '/contact', hash: null, label: () => nav_contact() }
 	];
 
 	let menuOpen = $state(false);
