@@ -3,7 +3,7 @@
 	publish = "build"
 
 [build.environment]
-	NODE_VERSION = "22"
+	NODE_VERSION = "24"
 
 # SvelteKit SSR runs via @sveltejs/adapter-netlify under .netlify/v1.
 # Keep publish = "build". Custom "Functions directory" in the UI is optional for your own functions only.
