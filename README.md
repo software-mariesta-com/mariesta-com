@@ -244,4 +244,4 @@ npm run test
 
 ## License
 
-Private project (`"private": true` in `package.json`). All rights reserved unless otherwise stated.
+This project is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).
