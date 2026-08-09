@@ -35,7 +35,7 @@ MARIESTA is a community of businesses built on expression, culture, sharing, and
 | Content | mdsvex |
 | Object storage | Tigris (S3-compatible via AWS SDK) |
 | Email | Nodemailer (Gmail SMTP for OTP / password reset) |
-| Adapter | `@sveltejs/adapter-node` |
+| Adapter | `@sveltejs/adapter-netlify` |
 | Tests | Vitest (unit) + Playwright (e2e) |
 | Quality | Prettier + ESLint |
 
@@ -207,15 +207,24 @@ npm run build
 npm run preview
 ```
 
-The app uses `@sveltejs/adapter-node`, so production expects a Node server. Set production `ORIGIN`, secrets, `DATABASE_URL`, and any SMTP / storage credentials on the host.
+### Netlify
+
+This app uses `@sveltejs/adapter-netlify` (SSR via Netlify Functions). Config lives in `netlify.toml` (`publish = "build"`).
+
+1. Connect the GitHub repo in Netlify (build command and publish dir come from `netlify.toml`)
+2. Set environment variables in Netlify (same names as `.env.example`), including:
+   - `ORIGIN` = `https://mariesta.netlify.app` (or your custom domain)
+   - `DATABASE_URL`, `BETTER_AUTH_SECRET`, SMTP, and `TIGRIS_*` as needed
+3. Do **not** use reserved names `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, or `AWS_REGION` (use `TIGRIS_*`)
+4. Leave Runtime unset / use the SvelteKit adapter output (do not treat `build` as a static-only site)
+5. After first deploy: sign up, then ensure an owner exists (`npm run db:ensure-owner` against the production DB if needed)
 
 Typical checklist:
 
-1. Set all required env vars
+1. Set all required env vars on the host
 2. Run `npm run db:push` or migrate against production DB
-3. `npm run build`
-4. Start the Node adapter output (see SvelteKit adapter-node docs for your host)
-5. Sign up the first user, then `npm run db:ensure-owner` if needed
+3. Push to `main` (or trigger a deploy)
+4. Confirm `/` redirects to `/home` and SSR pages load (not Netlify's generic 404)
 
 ## Testing
 
