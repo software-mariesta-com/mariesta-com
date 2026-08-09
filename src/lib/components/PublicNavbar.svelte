@@ -29,6 +29,10 @@
 		type AppTheme,
 		type ThemePreference
 	} from '#lib/store/local-storage/theme';
+	import {
+		hasPreferencesConsent,
+		openCookieSettings
+	} from '#lib/store/local-storage/cookie-consent';
 
 	const LANGUAGE_OPTIONS: { value: Locale; label: string }[] = [
 		{ value: 'en', label: 'English' },
@@ -49,7 +53,7 @@
 		{ href: null, hash: null, label: () => nav_home() },
 		{ href: '/about', hash: null, label: () => nav_about() },
 		{ href: '/companies', hash: null, label: () => nav_businesses() },
-		{ href: null, hash: 'partners', label: () => nav_partners() },
+		{ href: '/our-partners', hash: null, label: () => nav_partners() },
 		{ href: '/careers', hash: null, label: () => nav_career() }
 	];
 
@@ -61,6 +65,7 @@
 	let effectiveTheme = $state<AppTheme>('winter');
 	let themeBusy = $state(false);
 	let themeBtnEl: HTMLElement | undefined = $state();
+	let localeTip = $state<string | null>(null);
 
 	const homeHref = $derived(localizeHref('/home'));
 
@@ -78,8 +83,14 @@
 	});
 
 	function chooseLocale(locale: Locale) {
-		currentLocale = locale;
 		langOpen = false;
+		if (!hasPreferencesConsent()) {
+			localeTip = 'Turn on Preferences in Cookie settings to save language.';
+			openCookieSettings();
+			return;
+		}
+		localeTip = null;
+		currentLocale = locale;
 		setLocale(locale);
 	}
 
@@ -102,6 +113,9 @@
 			);
 			themePreference = result.preference;
 			effectiveTheme = result.effective;
+			if (!hasPreferencesConsent()) {
+				localeTip = 'Theme applied for this visit. Enable Preferences to remember it.';
+			}
 		} finally {
 			themeBusy = false;
 		}
@@ -238,3 +252,18 @@
 		</div>
 	</div>
 </div>
+
+{#if localeTip}
+	<div class="toast toast-top toast-end z-[80]">
+		<div class="alert alert-info shadow-lg">
+			<span class="text-sm">{localeTip}</span>
+			<button
+				type="button"
+				class="btn btn-ghost btn-xs cursor-pointer"
+				onclick={() => (localeTip = null)}
+			>
+				OK
+			</button>
+		</div>
+	</div>
+{/if}

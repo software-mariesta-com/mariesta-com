@@ -39,7 +39,7 @@ export function buildJobPostingJsonLd(job: JobForSchema, pageUrl: string) {
 		hiringOrganization: {
 			'@type': 'Organization',
 			name: orgName,
-			sameAs: 'https://mariesta.org'
+			sameAs: 'https://mariesta.com'
 		},
 		jobLocation: {
 			'@type': 'Place',

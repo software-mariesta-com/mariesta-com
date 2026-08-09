@@ -10,10 +10,25 @@
 		/>
 
 		<meta name="text-scale" content="scale" />
+		<link
+			rel="preload"
+			href="/fonts/Quizles-Decorative.woff2"
+			as="font"
+			type="font/woff2"
+			crossorigin="anonymous"
+		/>
 		<script>
 			try {
-				var key = 'mariesta-theme';
-				var stored = localStorage.getItem(key);
+				var themeKey = 'mariesta-theme';
+				var consentRaw = localStorage.getItem('mariesta-cookie-consent');
+				var allowTheme = false;
+				if (consentRaw) {
+					try {
+						var consent = JSON.parse(consentRaw);
+						allowTheme = consent && consent.version === 1 && consent.preferences === true;
+					} catch (e) {}
+				}
+				var stored = allowTheme ? localStorage.getItem(themeKey) : null;
 				var preference =
 					stored === 'winter' || stored === 'night' || stored === 'system' ? stored : 'system';
 				var effective =

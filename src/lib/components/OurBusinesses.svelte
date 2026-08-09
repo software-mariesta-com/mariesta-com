@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { sectionReveal } from '#lib/attachments/section-reveal';
 
 	export type HomeBusiness = {
@@ -12,7 +13,22 @@
 	let { businesses = [] }: { businesses?: HomeBusiness[] } = $props();
 
 	const cardClass =
-		'card card-border bg-base-100 w-72 shrink-0 transition-colors hover:border-primary/40 hover:shadow-md';</script>
+		'card card-border bg-base-100 w-72 shrink-0 transition-colors hover:border-primary/40 hover:shadow-md';
+
+	function pauseMarqueeOffscreen(node: HTMLElement) {
+		const track = node.querySelector<HTMLElement>('.marquee-track');
+		if (!track) return;
+
+		const io = new IntersectionObserver(
+			([entry]) => {
+				track.style.animationPlayState = entry?.isIntersecting ? 'running' : 'paused';
+			},
+			{ threshold: 0.05 }
+		);
+		io.observe(node);
+		return () => io.disconnect();
+	}
+</script>
 
 <section
 	id="businesses"
@@ -28,9 +44,6 @@
 			>
 				Our businesses
 			</h2>
-			{#if businesses.length > 0}
-				<a href="/companies" class="btn btn-ghost btn-sm mt-4 cursor-pointer">See more</a>
-			{/if}
 		</div>
 
 		{#if businesses.length === 0}
@@ -72,7 +85,7 @@
 				{/if}
 			{/snippet}
 
-			<div class="marquee w-full overflow-hidden py-4">
+			<div class="marquee w-full overflow-hidden py-4" {@attach pauseMarqueeOffscreen}>
 				<div class="marquee-track" aria-hidden="true">
 					<div class="marquee-set">
 						{#each businesses as business (business.id)}
@@ -85,6 +98,13 @@
 						{/each}
 					</div>
 				</div>
+			</div>
+
+			<div class="mt-8 flex justify-center">
+				<a href="/companies" class="btn btn-secondary btn-sm cursor-pointer">
+					See more
+					<ArrowRight class="h-4 w-4" aria-hidden="true" />
+				</a>
 			</div>
 		{/if}
 	</div>

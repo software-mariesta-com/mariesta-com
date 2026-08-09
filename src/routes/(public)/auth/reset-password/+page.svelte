@@ -2,13 +2,17 @@
 	import { enhance } from '$app/forms';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import AuthToast from '#lib/components/AuthToast.svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import OtpCodeField from '#lib/components/OtpCodeField.svelte';
 	import OtpResendControls from '#lib/components/OtpResendControls.svelte';
 	import PasswordField from '#lib/components/PasswordField.svelte';
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
+	import { withFormPending } from '#lib/util/form-pending';
 	import type { ActionData, PageServerData } from './$types';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
+
+	let pending = $state(false);
 
 	const token = $derived(
 		form && 'token' in form && form.token ? form.token : data.token
@@ -34,7 +38,12 @@
 		</h1>
 
 		{#if useToken}
-			<form method="POST" action="?/resetWithToken" class="grid gap-4" use:enhance>
+			<form
+				method="POST"
+				action="?/resetWithToken"
+				class="grid gap-4"
+				use:enhance={withFormPending((v) => (pending = v))}
+			>
 				<input type="hidden" name="token" value={token} />
 
 				<PasswordField
@@ -53,13 +62,18 @@
 					minlength={8}
 				/>
 
-				<button class="btn btn-primary cursor-pointer" type="submit">
+				<LoadingButton busy={pending} class="btn btn-primary">
 					<KeyRound class="h-4 w-4" aria-hidden="true" />
 					Set password
-				</button>
+				</LoadingButton>
 			</form>
 		{:else}
-			<form method="POST" action="?/reset" class="grid gap-4" use:enhance>
+			<form
+				method="POST"
+				action="?/reset"
+				class="grid gap-4"
+				use:enhance={withFormPending((v) => (pending = v))}
+			>
 				<fieldset class="fieldset">
 					<legend class="fieldset-legend">
 						Email<span class="text-error align-top text-sm leading-none" aria-hidden="true">*</span>
@@ -72,6 +86,7 @@
 						autocomplete="email"
 						value={email}
 						required
+						disabled={pending}
 					/>
 				</fieldset>
 
@@ -98,10 +113,10 @@
 					minlength={8}
 				/>
 
-				<button class="btn btn-primary cursor-pointer" type="submit">
+				<LoadingButton busy={pending} class="btn btn-primary">
 					<KeyRound class="h-4 w-4" aria-hidden="true" />
 					Set new password
-				</button>
+				</LoadingButton>
 			</form>
 
 			<OtpResendControls email={email} />

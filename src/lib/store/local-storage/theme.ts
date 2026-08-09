@@ -13,9 +13,22 @@ export function isAppTheme(value: string | null | undefined): value is AppTheme 
 	return value === 'winter' || value === 'night';
 }
 
+function hasPreferencesConsentInline(): boolean {
+	if (typeof localStorage === 'undefined') return false;
+	try {
+		const raw = localStorage.getItem('mariesta-cookie-consent');
+		if (!raw) return false;
+		const parsed = JSON.parse(raw) as { version?: number; preferences?: boolean };
+		return parsed.version === 1 && parsed.preferences === true;
+	} catch {
+		return false;
+	}
+}
+
 export function readStoredPreference(): ThemePreference | null {
 	if (typeof localStorage === 'undefined') return null;
 	try {
+		if (!hasPreferencesConsentInline()) return null;
 		const value = localStorage.getItem(THEME_STORAGE_KEY);
 		return isThemePreference(value) ? value : null;
 	} catch {
@@ -29,7 +42,9 @@ export function systemTheme(): AppTheme {
 }
 
 /** Resolve preference → actual daisyUI theme on `<html>`. */
-export function resolveEffectiveTheme(preference: ThemePreference = readStoredPreference() ?? 'system'): AppTheme {
+export function resolveEffectiveTheme(
+	preference: ThemePreference = readStoredPreference() ?? 'system'
+): AppTheme {
 	return preference === 'system' ? systemTheme() : preference;
 }
 
@@ -51,14 +66,17 @@ export function syncFavicon(effective: AppTheme = resolveEffectiveTheme()) {
 
 export function applyThemePreference(
 	preference: ThemePreference,
-	options: { syncFavicon?: boolean } = {}
+	options: { syncFavicon?: boolean; persist?: boolean } = {}
 ) {
 	if (typeof document === 'undefined') return resolveEffectiveTheme(preference);
 	const effective = resolveEffectiveTheme(preference);
 	document.documentElement.setAttribute('data-theme', effective);
 	document.documentElement.dataset.themePreference = preference;
+	const shouldPersist = options.persist ?? hasPreferencesConsentInline();
 	try {
-		localStorage.setItem(THEME_STORAGE_KEY, preference);
+		if (shouldPersist) {
+			localStorage.setItem(THEME_STORAGE_KEY, preference);
+		}
 	} catch {
 		/* ignore quota / private mode */
 	}
@@ -136,7 +154,6 @@ export async function setThemePreferenceWithCircleTransition(
 	spawnThemeRings(x, y);
 
 	const transition = document.startViewTransition(() => {
-		// Defer favicon until after the wipe so the tab icon swap does not flash mid-transition
 		applyThemePreference(preference, { syncFavicon: false });
 	});
 
@@ -144,8 +161,6 @@ export async function setThemePreferenceWithCircleTransition(
 		await transition.ready;
 
 		const radius = endRadius(x, y);
-		// Always expand the NEW theme from the button (same path for light and dark).
-		// Reversing clip on the old root caused a refresh-like glitch when going to light.
 		root.animate(
 			{
 				clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`]

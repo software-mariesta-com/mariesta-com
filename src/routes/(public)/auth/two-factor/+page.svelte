@@ -2,10 +2,15 @@
 	import { enhance } from '$app/forms';
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import AuthToast from '#lib/components/AuthToast.svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
+	import { withFormPending } from '#lib/util/form-pending';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
+
+	let totpPending = $state(false);
+	let backupPending = $state(false);
 
 	const toastMessage = $derived(form?.message ?? null);
 </script>
@@ -20,7 +25,12 @@
 	<div class="card-body gap-5">
 		<h1 class="card-title text-primary font-bold">Two-factor verification</h1>
 
-		<form method="POST" action="?/verifyTotp" class="grid gap-4" use:enhance>
+		<form
+			method="POST"
+			action="?/verifyTotp"
+			class="grid gap-4"
+			use:enhance={withFormPending((v) => (totpPending = v))}
+		>
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">
 					Authenticator code<span
@@ -35,28 +45,42 @@
 					inputmode="numeric"
 					autocomplete="one-time-code"
 					required
+					disabled={totpPending || backupPending}
 				/>
 			</fieldset>
 
-			<button class="btn btn-primary cursor-pointer" type="submit">
+			<LoadingButton busy={totpPending} class="btn btn-primary" disabled={backupPending}>
 				<ShieldCheck class="h-4 w-4" aria-hidden="true" />
 				Verify
-			</button>
+			</LoadingButton>
 		</form>
 
 		<div class="divider text-xs">or use a backup code</div>
 
-		<form method="POST" action="?/verifyBackup" class="grid gap-4" use:enhance>
+		<form
+			method="POST"
+			action="?/verifyBackup"
+			class="grid gap-4"
+			use:enhance={withFormPending((v) => (backupPending = v))}
+		>
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">
 					Backup code<span class="text-error align-top text-sm leading-none" aria-hidden="true"
 						>*</span
 					>
 				</legend>
-				<input id="backup-code" class="input w-full cursor-text" name="code" required />
+				<input
+					id="backup-code"
+					class="input w-full cursor-text"
+					name="code"
+					required
+					disabled={backupPending || totpPending}
+				/>
 			</fieldset>
 
-			<button class="btn btn-outline cursor-pointer" type="submit">Verify backup code</button>
+			<LoadingButton busy={backupPending} class="btn btn-outline" disabled={totpPending}>
+				Verify backup code
+			</LoadingButton>
 		</form>
 
 		<div class="text-sm">

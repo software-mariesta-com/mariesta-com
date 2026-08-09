@@ -13,6 +13,10 @@
 	--color-primary-content: #ffffff;
 	--color-error: #9f1239;
 	--color-error-content: #fff1f2;
+	/* One radius token for cards / boxes across the app */
+	--radius-box: 0.75rem;
+	--radius-field: 0.5rem;
+	--radius-selector: 0.5rem;
 }
 
 @plugin 'daisyui/theme' {
@@ -22,6 +26,9 @@
 	--color-primary-content: #ffffff;
 	--color-error: #fb7185;
 	--color-error-content: #4c0519;
+	--radius-box: 0.75rem;
+	--radius-field: 0.5rem;
+	--radius-selector: 0.5rem;
 }
 
 @theme {
@@ -41,6 +48,11 @@ html {
 /* Shared home page sections: comfortable height + hash offset under navbar */
 @utility home-section {
 	@apply relative flex min-h-[36svh] scroll-mt-20 flex-col justify-center px-6 py-14 sm:px-8 sm:py-16 lg:px-10;
+}
+
+/* Cards always use the theme box radius (matches rounded-box) */
+@utility card {
+	border-radius: var(--radius-box);
 }
 
 /* Brand wordmark — always all-caps Quizles + primary */

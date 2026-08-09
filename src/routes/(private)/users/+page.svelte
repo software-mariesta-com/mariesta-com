@@ -6,6 +6,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import CrudToast, { type CrudToastKind } from '#lib/components/CrudToast.svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import {
 		PERMISSION_ACTIONS,
 		PERMISSION_SECTION_LABELS,
@@ -54,6 +55,7 @@
 
 	let deleteTarget = $state<AuthUserRow | null>(null);
 	let deleting = $state(false);
+	let resendingId = $state<string | null>(null);
 
 	let toastMessage = $state<string | null>(null);
 	let toastKind = $state<CrudToastKind>('success');
@@ -184,6 +186,7 @@
 
 	async function saveItem(event: Event) {
 		event.preventDefault();
+		if (saving || deleting) return;
 		saving = true;
 		try {
 			if (editing) {
@@ -224,7 +227,7 @@
 	}
 
 	async function confirmDelete() {
-		if (!deleteTarget) return;
+		if (!deleteTarget || deleting || saving) return;
 		deleting = true;
 		try {
 			const res = await fetch(`/api/users/${deleteTarget.id}`, { method: 'DELETE' });
@@ -240,6 +243,8 @@
 	}
 
 	async function resendInvite(item: AuthUserRow) {
+		if (resendingId) return;
+		resendingId = item.id;
 		try {
 			const res = await fetch(`/api/users/${item.id}`, {
 				method: 'POST',
@@ -250,6 +255,8 @@
 			showToast('Password set link resent');
 		} catch (err) {
 			showToast(err instanceof Error ? err.message : 'Resend failed', 'error');
+		} finally {
+			resendingId = null;
 		}
 	}
 
@@ -339,14 +346,25 @@
 													<Pencil class="h-4 w-4" />
 												</button>
 											</div>
-											<div class="tooltip tooltip-info tooltip-right" data-tip="Resend invite">
+											<div
+												class="tooltip tooltip-info tooltip-right"
+												data-tip={resendingId === item.id ? 'Sending…' : 'Resend invite'}
+											>
 												<button
 													type="button"
-													class="btn btn-ghost btn-square btn-sm btn-info cursor-pointer"
-													aria-label="Resend invite"
+													class="btn btn-ghost btn-square btn-sm btn-info {resendingId === item.id
+														? 'cursor-wait'
+														: 'cursor-pointer'}"
+													aria-label={resendingId === item.id ? 'Sending…' : 'Resend invite'}
+													aria-busy={resendingId === item.id}
+													disabled={resendingId === item.id}
 													onclick={() => resendInvite(item)}
 												>
-													<Mail class="h-4 w-4" />
+													{#if resendingId === item.id}
+														<span class="loading loading-spinner loading-sm"></span>
+													{:else}
+														<Mail class="h-4 w-4" />
+													{/if}
 												</button>
 											</div>
 										{/if}
@@ -555,10 +573,9 @@
 				>
 					Cancel
 				</button>
-				<button type="submit" class="btn btn-primary cursor-pointer" disabled={saving}>
-					{#if saving}<span class="loading loading-spinner loading-sm"></span>{/if}
+				<LoadingButton busy={saving} class="btn btn-primary">
 					{editing ? 'Save' : 'Send invite'}
-				</button>
+				</LoadingButton>
 			</div>
 		</form>
 	</div>
@@ -583,15 +600,9 @@
 			>
 				Cancel
 			</button>
-			<button
-				type="button"
-				class="btn btn-error cursor-pointer"
-				onclick={confirmDelete}
-				disabled={deleting}
-			>
-				{#if deleting}<span class="loading loading-spinner loading-sm"></span>{/if}
+			<LoadingButton type="button" busy={deleting} class="btn btn-error" onclick={confirmDelete}>
 				Delete
-			</button>
+			</LoadingButton>
 		</div>
 	</div>
 	<form method="dialog" class="modal-backdrop">

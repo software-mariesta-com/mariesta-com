@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow" />
+		<title>%sveltekit.status% | MARIESTA</title>
+		<style>
+			:root {
+				color-scheme: dark;
+			}
+			body {
+				margin: 0;
+				min-height: 100vh;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-family: system-ui, sans-serif;
+				background: #0b1220;
+				color: #e8eef7;
+				text-align: center;
+				padding: 2rem;
+			}
+			.wrap {
+				max-width: 28rem;
+			}
+			.brand {
+				font-size: 1.75rem;
+				font-weight: 700;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: #f62440;
+				text-decoration: none;
+			}
+			h1 {
+				margin: 1.5rem 0 0.75rem;
+				font-size: 1.5rem;
+			}
+			p {
+				margin: 0;
+				opacity: 0.75;
+				line-height: 1.5;
+			}
+			a.cta {
+				display: inline-block;
+				margin-top: 1.75rem;
+				padding: 0.65rem 1.25rem;
+				border-radius: 0.5rem;
+				background: #f62440;
+				color: #fff;
+				text-decoration: none;
+				font-weight: 600;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<main class="wrap">
+			<a class="brand" href="/home">MARIESTA</a>
+			<h1>%sveltekit.status%</h1>
+			<p>%sveltekit.error.message%</p>
+			<a class="cta" href="/home">Go home</a>
+		</main>
+	</body>
+</html>

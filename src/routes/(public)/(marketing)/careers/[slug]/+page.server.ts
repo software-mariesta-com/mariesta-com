@@ -1,9 +1,13 @@
 import { error } from '@sveltejs/kit';
+import { getPublishedCareerBySlug } from '#lib/remotes/career.remote';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, params }) => {
-	const res = await fetch(`/api/public/careers/${encodeURIComponent(params.slug)}`);
-	if (res.status === 404) error(404, 'Job not found');
-	if (!res.ok) error(500, 'Failed to load job');
-	return { job: await res.json() };
+export const load: PageServerLoad = async ({ params }) => {
+	try {
+		const job = await getPublishedCareerBySlug(params.slug);
+		// Serialize Dates for the page (matches previous JSON API shape)
+		return { job: JSON.parse(JSON.stringify(job)) as typeof job };
+	} catch {
+		error(404, 'Job not found');
+	}
 };

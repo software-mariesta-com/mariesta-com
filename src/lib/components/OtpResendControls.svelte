@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { onMount } from 'svelte';
+	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import {
 		OTP_EXPIRES_IN_SEC,
 		OTP_RESEND_COOLDOWN_SEC,
@@ -18,12 +19,13 @@
 	let now = $state(Date.now());
 	let expireAt = $state(Date.now() + OTP_EXPIRES_IN_SEC * 1000);
 	let resendAt = $state(Date.now() + OTP_RESEND_COOLDOWN_SEC * 1000);
+	let pending = $state(false);
 
 	const expiresIn = $derived(Math.max(0, Math.ceil((expireAt - now) / 1000)));
 	const resendIn = $derived(Math.max(0, Math.ceil((resendAt - now) / 1000)));
 	const expired = $derived(expiresIn <= 0);
 	const resendBlocked = $derived(!expired && resendIn > 0);
-	const canResend = $derived(Boolean(email) && !resendBlocked);
+	const canResend = $derived(Boolean(email) && !resendBlocked && !pending);
 
 	onMount(() => {
 		const id = setInterval(() => {
@@ -52,23 +54,30 @@
 		{action}
 		class="grid gap-2"
 		use:enhance={() => {
+			pending = true;
 			return async ({ result, update }) => {
-				await update();
-				if (result.type === 'success') resetTimers();
+				try {
+					await update();
+					if (result.type === 'success') resetTimers();
+				} finally {
+					pending = false;
+				}
 			};
 		}}
 	>
 		<input type="hidden" name="email" value={email} />
-		<button
-			class={['btn btn-ghost btn-sm', canResend ? 'cursor-pointer' : 'cursor-not-allowed']}
-			type="submit"
-			disabled={!canResend}
+		<LoadingButton
+			busy={pending}
+			class="btn btn-ghost btn-sm"
+			disabled={!canResend && !pending}
 		>
-			{#if resendBlocked}
+			{#if pending}
+				Sending…
+			{:else if resendBlocked}
 				Resend in {formatCountdown(resendIn)}
 			{:else}
 				Resend code
 			{/if}
-		</button>
+		</LoadingButton>
 	</form>
 </div>
