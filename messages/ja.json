@@ -1,0 +1,14 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"nav_home": "ホーム",
+	"nav_about": "会社概要",
+	"nav_businesses": "事業",
+	"nav_partners": "パートナー",
+	"nav_career": "採用",
+	"nav_language": "言語",
+	"nav_theme": "テーマ",
+	"nav_theme_light": "ライト",
+	"nav_theme_dark": "ダーク",
+	"nav_theme_system": "システム",
+	"hello_world": "Hello, {name} from ja!"
+}

@@ -1,0 +1,132 @@
+@import './fonts.css';
+@import 'tailwindcss';
+
+@plugin 'daisyui' {
+	themes: winter --default, night --prefersdark;
+}
+
+/* Brand primary = logo crimson #F62440; error is a deeper rose so CTAs ≠ danger */
+@plugin 'daisyui/theme' {
+	name: 'winter';
+	default: true;
+	--color-primary: #f62440;
+	--color-primary-content: #ffffff;
+	--color-error: #9f1239;
+	--color-error-content: #fff1f2;
+}
+
+@plugin 'daisyui/theme' {
+	name: 'night';
+	prefersdark: true;
+	--color-primary: #f62440;
+	--color-primary-content: #ffffff;
+	--color-error: #fb7185;
+	--color-error-content: #4c0519;
+}
+
+@theme {
+	--font-quizles: 'Quizles Decorative', ui-serif, Georgia, serif;
+}
+
+html {
+	scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
+}
+
+/* Shared home page sections: comfortable height + hash offset under navbar */
+@utility home-section {
+	@apply relative flex min-h-[36svh] scroll-mt-20 flex-col justify-center px-6 py-14 sm:px-8 sm:py-16 lg:px-10;
+}
+
+/* Brand wordmark — always all-caps Quizles + primary */
+@utility logo-wordmark {
+	font-family: var(--font-quizles);
+	color: var(--color-primary);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	/* Quizles sits optically high; nudge down onto the shared baseline */
+	position: relative;
+	top: 0.12em;
+}
+
+/* Same optical fix if Quizles is used via font-quizles alone */
+.font-quizles {
+	position: relative;
+	top: 0.12em;
+}
+
+/* daisyUI btn already flex-centers; the baseline nudge throws that off */
+.btn.logo-wordmark {
+	top: 0;
+	line-height: 1;
+}
+
+/* Theme toggle: circular wipe from the control (new theme expands over old) */
+@media (prefers-reduced-motion: no-preference) {
+	@supports (view-transition-name: root) {
+		::view-transition-old(root),
+		::view-transition-new(root) {
+			animation: none;
+			mix-blend-mode: normal;
+		}
+
+		html[data-theme-transition='circle']::view-transition-old(root) {
+			z-index: 1;
+		}
+
+		html[data-theme-transition='circle']::view-transition-new(root) {
+			z-index: 9999;
+		}
+	}
+}
+
+/* Expanding inner + outer rings from the theme button */
+.theme-transition-rings {
+	pointer-events: none;
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+}
+
+.theme-ring {
+	position: absolute;
+	left: var(--theme-tx);
+	top: var(--theme-ty);
+	width: 12px;
+	height: 12px;
+	border-radius: 9999px;
+	transform: translate(-50%, -50%);
+	opacity: 0.9;
+	animation: theme-ring-expand 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.theme-ring-inner {
+	border: 2px solid color-mix(in oklab, var(--color-primary) 85%, white);
+	box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-primary) 25%, transparent);
+}
+
+.theme-ring-outer {
+	border: 1.5px solid color-mix(in oklab, var(--color-primary) 45%, transparent);
+	animation-delay: 70ms;
+	opacity: 0.7;
+}
+
+@keyframes theme-ring-expand {
+	to {
+		width: 160vmax;
+		height: 160vmax;
+		opacity: 0;
+		border-width: 1px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.theme-transition-rings {
+		display: none;
+	}
+}

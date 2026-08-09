@@ -1,0 +1,39 @@
+<!doctype html>
+
+<html lang="%paraglide.lang%" dir="%paraglide.dir%">
+	<head>
+		<meta charset="utf-8" />
+
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1"
+		/>
+
+		<meta name="text-scale" content="scale" />
+		<script>
+			try {
+				var key = 'mariesta-theme';
+				var stored = localStorage.getItem(key);
+				var preference =
+					stored === 'winter' || stored === 'night' || stored === 'system' ? stored : 'system';
+				var effective =
+					preference === 'system'
+						? window.matchMedia('(prefers-color-scheme: dark)').matches
+							? 'night'
+							: 'winter'
+						: preference;
+				document.documentElement.setAttribute('data-theme', effective);
+				document.documentElement.setAttribute('data-theme-preference', preference);
+				var fav = document.createElement('link');
+				fav.rel = 'icon';
+				fav.type = 'image/svg+xml';
+				fav.setAttribute('data-mariesta-favicon', 'true');
+				fav.href = effective === 'night' ? '/favicon-night.svg' : '/favicon-light.svg';
+				document.head.appendChild(fav);
+			} catch (e) {}
+		</script>
+		%sveltekit.head%
+	</head>
+
+	<body data-sveltekit-preload-data="hover"><div style="display: contents">%sveltekit.body%</div></body>
+</html>

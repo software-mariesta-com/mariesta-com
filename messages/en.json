@@ -1,0 +1,14 @@
+{
+	"$schema": "https://inlang.com/schema/inlang-message-format",
+	"nav_home": "Home",
+	"nav_about": "About us",
+	"nav_businesses": "Businesses",
+	"nav_partners": "Partners",
+	"nav_career": "Career",
+	"nav_language": "Language",
+	"nav_theme": "Theme",
+	"nav_theme_light": "Light",
+	"nav_theme_dark": "Dark",
+	"nav_theme_system": "System",
+	"hello_world": "Hello, {name} from en!"
+}
