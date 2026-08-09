@@ -1,7 +1,5 @@
 # MARIESTA
 
-**One group. Many companies.**
-
 MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. This repository is the official website and admin app: a public marketing site plus a private console for managing businesses, facilities, departments, members, partners, careers, and users.
 
 ## Features
@@ -246,4 +244,4 @@ npm run test
 
 ## License
 
-Private project (`"private": true` in `package.json`). All rights reserved unless otherwise stated.
+This project is licensed under the [GNU General Public License v3.0](LICENSE) (GPL-3.0-only).

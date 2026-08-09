@@ -141,7 +141,7 @@
 						</span>
 					</p>
 					<div class="hero-cta mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-						<a href="#businesses" class="btn btn-primary cursor-pointer">Explore businesses</a>
+						<a href="/companies" class="btn btn-primary cursor-pointer">Explore businesses</a>
 						<a href="/about" class="btn btn-ghost cursor-pointer">About us</a>
 					</div>
 				</div>

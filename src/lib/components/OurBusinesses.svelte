@@ -12,8 +12,7 @@
 	let { businesses = [] }: { businesses?: HomeBusiness[] } = $props();
 
 	const cardClass =
-		'card card-border bg-base-100 w-72 shrink-0 transition-shadow hover:shadow-md';
-</script>
+		'card card-border bg-base-100 w-72 shrink-0 transition-colors hover:border-primary/40 hover:shadow-md';</script>
 
 <section
 	id="businesses"
@@ -29,6 +28,9 @@
 			>
 				Our businesses
 			</h2>
+			{#if businesses.length > 0}
+				<a href="/companies" class="btn btn-ghost btn-sm mt-4 cursor-pointer">See more</a>
+			{/if}
 		</div>
 
 		{#if businesses.length === 0}

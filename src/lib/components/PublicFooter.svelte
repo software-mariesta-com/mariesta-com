@@ -1,18 +1,37 @@
+<script lang="ts">
+	type FooterBusiness = {
+		id: string;
+		name: string;
+		linkUrl: string | null;
+	};
+
+	let { businesses = [] }: { businesses?: FooterBusiness[] } = $props();
+</script>
+
 <footer class="footer sm:footer-horizontal bg-base-200 text-base-content p-10">
 	<aside>
 		<a href="/home" class="logo-wordmark text-2xl cursor-pointer">MARIESTA</a>
-		<p>
-			One group. Many companies.
-			<br />
-			Building and stewarding ventures across industries.
-		</p>
 	</aside>
 	<nav>
-		<h6 class="footer-title">Services</h6>
-		<a href="/home#companies" class="link link-hover cursor-pointer">Software</a>
-		<a href="/home#companies" class="link link-hover cursor-pointer">Hospitality</a>
-		<a href="/home#companies" class="link link-hover cursor-pointer">Health</a>
-		<a href="/home#companies" class="link link-hover cursor-pointer">More companies</a>
+		<h6 class="footer-title">Business</h6>
+		{#if businesses.length === 0}
+			<a href="/companies" class="link link-hover cursor-pointer">Our businesses</a>
+		{:else}
+			{#each businesses as business (business.id)}
+				{#if business.linkUrl}
+					<a
+						href={business.linkUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="link link-hover cursor-pointer"
+					>
+						{business.name}
+					</a>
+				{:else}
+					<a href="/companies" class="link link-hover cursor-pointer">{business.name}</a>
+				{/if}
+			{/each}
+		{/if}
 	</nav>
 	<nav>
 		<h6 class="footer-title">Company</h6>
