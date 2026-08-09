@@ -5,11 +5,11 @@ import {
 	S3Client
 } from '@aws-sdk/client-s3';
 import {
-	AWS_ACCESS_KEY_ID,
-	AWS_ENDPOINT_URL_S3,
-	AWS_REGION,
-	AWS_SECRET_ACCESS_KEY,
-	BUCKET_NAME
+	TIGRIS_ACCESS_KEY_ID,
+	TIGRIS_BUCKET_NAME,
+	TIGRIS_ENDPOINT_URL,
+	TIGRIS_REGION,
+	TIGRIS_SECRET_ACCESS_KEY
 } from '$app/env/private';
 
 function requireEnv(name: string, value: string | undefined): string {
@@ -19,11 +19,11 @@ function requireEnv(name: string, value: string | undefined): string {
 
 function getClient() {
 	return new S3Client({
-		region: AWS_REGION || 'auto',
-		endpoint: requireEnv('AWS_ENDPOINT_URL_S3', AWS_ENDPOINT_URL_S3),
+		region: TIGRIS_REGION || 'auto',
+		endpoint: requireEnv('TIGRIS_ENDPOINT_URL', TIGRIS_ENDPOINT_URL),
 		credentials: {
-			accessKeyId: requireEnv('AWS_ACCESS_KEY_ID', AWS_ACCESS_KEY_ID),
-			secretAccessKey: requireEnv('AWS_SECRET_ACCESS_KEY', AWS_SECRET_ACCESS_KEY)
+			accessKeyId: requireEnv('TIGRIS_ACCESS_KEY_ID', TIGRIS_ACCESS_KEY_ID),
+			secretAccessKey: requireEnv('TIGRIS_SECRET_ACCESS_KEY', TIGRIS_SECRET_ACCESS_KEY)
 		},
 		// Bucket names with dots break virtual-hosted SSL; path-style keeps Put/Get working.
 		forcePathStyle: true
@@ -59,7 +59,7 @@ export async function uploadObject(
 	body: Uint8Array | Buffer,
 	contentType: string
 ): Promise<{ key: string; url: string }> {
-	const bucket = requireEnv('BUCKET_NAME', BUCKET_NAME);
+	const bucket = requireEnv('TIGRIS_BUCKET_NAME', TIGRIS_BUCKET_NAME);
 	const client = getClient();
 
 	await client.send(
@@ -75,7 +75,7 @@ export async function uploadObject(
 }
 
 export async function getObject(key: string) {
-	const bucket = requireEnv('BUCKET_NAME', BUCKET_NAME);
+	const bucket = requireEnv('TIGRIS_BUCKET_NAME', TIGRIS_BUCKET_NAME);
 	const client = getClient();
 
 	return client.send(
@@ -87,7 +87,7 @@ export async function getObject(key: string) {
 }
 
 export async function deleteObject(key: string): Promise<void> {
-	const bucket = requireEnv('BUCKET_NAME', BUCKET_NAME);
+	const bucket = requireEnv('TIGRIS_BUCKET_NAME', TIGRIS_BUCKET_NAME);
 	const client = getClient();
 
 	await client.send(

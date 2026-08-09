@@ -45,23 +45,24 @@ export const variables = defineEnvVars({
 		description: 'From address for auth emails (usually the same as SMTP_USER for Gmail).',
 		schema: optionalString
 	},
-	AWS_ACCESS_KEY_ID: {
+	// Named TIGRIS_* (not AWS_*) so Netlify accepts them; AWS_* is reserved there.
+	TIGRIS_ACCESS_KEY_ID: {
 		description: 'Tigris / S3 access key ID for object storage uploads.',
 		schema: optionalString
 	},
-	AWS_SECRET_ACCESS_KEY: {
+	TIGRIS_SECRET_ACCESS_KEY: {
 		description: 'Tigris / S3 secret access key for object storage uploads.',
 		schema: optionalString
 	},
-	AWS_ENDPOINT_URL_S3: {
+	TIGRIS_ENDPOINT_URL: {
 		description: 'Tigris S3 endpoint URL (e.g. `https://t3.storage.dev`).',
 		schema: optionalString
 	},
-	AWS_REGION: {
+	TIGRIS_REGION: {
 		description: 'Tigris / S3 region. Use `auto` for Tigris.',
 		schema: optionalString
 	},
-	BUCKET_NAME: {
+	TIGRIS_BUCKET_NAME: {
 		description: 'Tigris bucket name for uploaded images.',
 		schema: optionalString
 	}

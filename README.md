@@ -89,14 +89,14 @@ Copy `.env.example` to `.env`. Variables are also declared in `src/env.ts`.
 | `SMTP_USER` | No* | SMTP username |
 | `SMTP_PASS` | No* | SMTP password (Gmail App Password) |
 | `SMTP_FROM` | No* | From address for auth emails |
-| `AWS_ACCESS_KEY_ID` | No** | Tigris / S3 access key |
-| `AWS_SECRET_ACCESS_KEY` | No** | Tigris / S3 secret key |
-| `AWS_ENDPOINT_URL_S3` | No** | S3 endpoint (e.g. `https://t3.storage.dev`) |
-| `AWS_REGION` | No** | Region (`auto` for Tigris) |
-| `BUCKET_NAME` | No** | Bucket for uploaded images |
+| `TIGRIS_ACCESS_KEY_ID` | No** | Tigris / S3 access key |
+| `TIGRIS_SECRET_ACCESS_KEY` | No** | Tigris / S3 secret key |
+| `TIGRIS_ENDPOINT_URL` | No** | S3 endpoint (e.g. `https://t3.storage.dev`) |
+| `TIGRIS_REGION` | No** | Region (`auto` for Tigris) |
+| `TIGRIS_BUCKET_NAME` | No** | Bucket for uploaded images |
 
 \* Needed for OTP and password-reset emails.  
-\*\* Needed for partner logos and member photo uploads. Prefer a bucket name without dots (dotted names can break Tigris public CDN SSL). Images are served through `/api/media/...`, so private buckets work.
+\*\* Needed for partner logos and member photo uploads. Prefer a bucket name without dots (dotted names can break Tigris public CDN SSL). Images are served through `/api/media/...`, so private buckets work. Use `TIGRIS_*` names, not `AWS_*` (Netlify reserves `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION`).
 
 ### GitHub OAuth
 
