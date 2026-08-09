@@ -10,7 +10,6 @@
 			const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 			tl.from('.about-brand', { y: 24, autoAlpha: 0, duration: 0.65 })
 				.from('.about-headline', { y: 16, autoAlpha: 0, duration: 0.5 }, '-=0.28')
-				.from('.about-lead', { y: 12, autoAlpha: 0, duration: 0.45 }, '-=0.22')
 				.from('.about-cta', { y: 10, autoAlpha: 0, duration: 0.4 }, '-=0.18');
 		}, node);
 
@@ -40,14 +39,6 @@
 		{
 			name: 'Software',
 			body: 'Products and platforms built with care for the people who use them and the teams who ship them.'
-		},
-		{
-			name: 'Hospitality',
-			body: 'Places and services where welcome, detail, and human presence are the product.'
-		},
-		{
-			name: 'Health',
-			body: 'Ventures that support wellbeing with the same seriousness we bring to craft elsewhere in the group.'
 		}
 	] as const;
 
@@ -67,16 +58,17 @@
 				'A community of businesses built on expression, culture, sharing, and ownership.'
 		}
 	};
+
 </script>
 
 <svelte:head>
-	<title>About MARIESTA | One group. Many companies.</title>
+	<title>About MARIESTA</title>
 	<meta
 		name="description"
 		content="MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. Steady pay, shared upside, and room to grow a life."
 	/>
 	<link rel="canonical" href="https://mariesta.org/about" />
-	<meta property="og:title" content="About MARIESTA | One group. Many companies." />
+	<meta property="og:title" content="About MARIESTA" />
 	<meta
 		property="og:description"
 		content="A community of ventures where people create freely, own together, and share success."
@@ -85,12 +77,14 @@
 	<meta property="og:type" content="website" />
 	<meta property="og:image" content="https://mariesta.org/og-default.png" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="About MARIESTA | One group. Many companies." />
+	<meta name="twitter:title" content="About MARIESTA" />
 	<meta
 		name="twitter:description"
 		content="A community of ventures where people create freely, own together, and share success."
 	/>
-	{@html `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`}
+	<script type="application/ld+json">
+		{JSON.stringify(jsonLd)}
+	</script>
 </svelte:head>
 
 <div class="relative bg-base-200">
@@ -108,17 +102,14 @@
 			<p class="about-brand logo-wordmark text-4xl sm:text-5xl md:text-6xl">MARIESTA</p>
 			<h1
 				id="about-heading"
-				class="about-headline text-base-content mt-5 text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl"
+				class="about-headline text-base-content/75 mt-5 max-w-xl text-lg leading-relaxed sm:text-xl"
 			>
-				One group. Many companies.
-			</h1>
-			<p class="about-lead text-base-content/75 mt-4 max-w-xl text-lg leading-relaxed sm:text-xl">
 				We build and steward a community of ventures where people own their craft, share the
 				upside, and grow together.
-			</p>
+			</h1>
 			<div class="about-cta mt-8 flex flex-wrap gap-3">
 				<a
-					href={`${localizeHref('/home')}#businesses`}
+					href={localizeHref('/companies')}
 					class="btn btn-primary cursor-pointer"
 				>
 					Explore businesses
@@ -178,7 +169,7 @@
 					Where we build
 				</h2>
 				<p class="text-base-content/70 mt-2 max-w-xl text-base">
-					The group spans more than one industry. These are the lanes we work in today.
+					Software is the lane we work in today.
 				</p>
 				<ul class="mt-8 flex flex-col gap-6">
 					{#each industries as industry (industry.name)}
@@ -190,7 +181,7 @@
 				</ul>
 				<p class="mt-8">
 					<a
-						href={`${localizeHref('/home')}#businesses`}
+						href={localizeHref('/companies')}
 						class="link link-primary cursor-pointer font-medium"
 					>
 						See our businesses

@@ -48,11 +48,12 @@
 	const NAV_LINKS: { href: string | null; hash: string | null; label: () => string }[] = [
 		{ href: null, hash: null, label: () => nav_home() },
 		{ href: '/about', hash: null, label: () => nav_about() },
-		{ href: null, hash: 'businesses', label: () => nav_businesses() },
+		{ href: '/companies', hash: null, label: () => nav_businesses() },
 		{ href: null, hash: 'partners', label: () => nav_partners() },
 		{ href: '/careers', hash: null, label: () => nav_career() }
 	];
 
+	let menuOpen = $state(false);
 	let langOpen = $state(false);
 	let themeOpen = $state(false);
 	let currentLocale = $state<Locale>(getLocale());
@@ -109,33 +110,42 @@
 
 <div class="navbar bg-base-200 shadow-sm">
 	<div class="navbar-start">
-		<div class="dropdown">
-			<div class="tooltip" data-tip="Menu">
-				<button
-					type="button"
-					tabindex="0"
-					class="btn btn-ghost btn-square lg:hidden cursor-pointer"
-					aria-label="Open menu"
+		<div class="tooltip tooltip-bottom" data-tip="Menu">
+			<details
+				class="dropdown"
+				bind:open={menuOpen}
+				{@attach closeDetailsOnOutside()}
+			>
+				<summary
+					class="btn btn-ghost btn-square lg:hidden cursor-pointer [&::-webkit-details-marker]:hidden"
+					aria-label="Menu"
+					aria-expanded={menuOpen}
 				>
 					<Menu class="h-5 w-5" />
-				</button>
-			</div>
-			<ul
-				tabindex="-1"
-				class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
-			>
-				{#each NAV_LINKS as link (link.href ?? link.hash ?? 'home')}
-					<li>
-						<a href={navHref(link)} class="cursor-pointer">{link.label()}</a>
-					</li>
-				{/each}
-			</ul>
+				</summary>
+				<ul
+					tabindex="-1"
+					class="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow"
+				>
+					{#each NAV_LINKS as link (link.href ?? link.hash ?? 'home')}
+						<li>
+							<a
+								href={navHref(link)}
+								class="cursor-pointer"
+								onclick={() => (menuOpen = false)}
+							>
+								{link.label()}
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</details>
 		</div>
 		<a
 			href={homeHref}
 			class="btn btn-ghost logo-wordmark cursor-pointer items-center text-xl leading-none"
 		>
-			MARIESTA
+			<span class="relative top-[0.12em]">MARIESTA</span>
 		</a>
 	</div>
 

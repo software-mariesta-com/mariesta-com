@@ -1,7 +1,5 @@
 # MARIESTA
 
-**One group. Many companies.**
-
 MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. This repository is the official website and admin app: a public marketing site plus a private console for managing businesses, facilities, departments, members, partners, careers, and users.
 
 ## Features

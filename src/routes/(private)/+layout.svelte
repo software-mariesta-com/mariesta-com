@@ -52,17 +52,21 @@
 	<input id="admin-drawer" type="checkbox" class="drawer-toggle" />
 
 	<div class="drawer-content relative min-h-svh bg-base-200">
-		<div class="tooltip tooltip-right absolute top-3 left-3 z-20 lg:hidden" data-tip="Open menu">
-			<label
-				for="admin-drawer"
-				class="btn btn-ghost btn-square bg-base-100 shadow-sm cursor-pointer"
-				aria-label="Open menu"
-			>
-				<Menu class="h-5 w-5" />
-			</label>
+		<div
+			class="border-base-300 sticky top-0 z-20 flex items-center gap-2 border-b bg-base-200 px-3 py-2 lg:hidden"
+		>
+			<div class="tooltip tooltip-bottom" data-tip="Open menu">
+				<label
+					for="admin-drawer"
+					class="btn btn-ghost btn-square cursor-pointer"
+					aria-label="Open menu"
+				>
+					<Menu class="h-5 w-5" />
+				</label>
+			</div>
 		</div>
 
-		<main class="min-h-svh p-4 pt-14 sm:p-6 lg:p-8 lg:pt-8">
+		<main class="min-h-svh p-4 sm:p-6 lg:p-8">
 			{#if show2faBanner && page.url.pathname !== AUTH_ROUTES.profile}
 				<div class="alert alert-warning mb-4 shrink-0 shadow-sm" role="status">
 					<ShieldAlert class="h-5 w-5 shrink-0" aria-hidden="true" />
