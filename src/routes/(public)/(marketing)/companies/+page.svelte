@@ -1,6 +1,11 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import type { PageData } from './$types';
+	import {
+		breadcrumbJsonLd,
+		collectionPageJsonLd
+	} from '#lib/tool/seo';
 
 	type BusinessListItem = {
 		id: string;
@@ -12,6 +17,26 @@
 
 	let { data }: { data: PageData } = $props();
 	let items = $derived(data.items as BusinessListItem[]);
+	const isEmpty = $derived(!data.loadError && items.length === 0);
+
+	const title = 'Businesses | MARIESTA';
+	const description =
+		'Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites.';
+	const jsonLd = $derived([
+		collectionPageJsonLd({
+			name: title,
+			path: '/companies',
+			description,
+			itemList: items.map((b) => ({
+				name: b.name,
+				...(b.linkUrl ? { url: b.linkUrl } : {})
+			}))
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Businesses', path: '/companies' }
+		])
+	]);
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -45,47 +70,9 @@
 
 	const cardClass =
 		'card card-border bg-base-100 h-full transition-colors hover:border-primary/40';
-
-	const jsonLd = {
-		'@context': 'https://schema.org',
-		'@type': 'CollectionPage',
-		name: 'Businesses | MARIESTA',
-		url: 'https://mariesta.com/companies',
-		description:
-			'Explore the businesses in the MARIESTA group. Software and ventures built on craft, ownership, and community.',
-		isPartOf: {
-			'@type': 'WebSite',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com'
-		}
-	};
 </script>
 
-<svelte:head>
-	<title>Businesses | MARIESTA</title>
-	<meta
-		name="description"
-		content="Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites."
-	/>
-	<link rel="canonical" href="https://mariesta.com/companies" />
-	<meta property="og:title" content="Businesses | MARIESTA" />
-	<meta
-		property="og:description"
-		content="Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites."
-	/>
-	<meta property="og:url" content="https://mariesta.com/companies" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Businesses | MARIESTA" />
-	<meta
-		name="twitter:description"
-		content="Explore every published business in the MARIESTA group. Learn what each venture builds and find links to their sites."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/companies" {jsonLd} noindex={isEmpty} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

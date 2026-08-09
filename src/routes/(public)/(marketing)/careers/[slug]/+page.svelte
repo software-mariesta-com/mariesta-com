@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import {
 		EMPLOYMENT_TYPE_LABELS,
 		SALARY_UNIT_LABELS,
@@ -8,6 +9,7 @@
 		type WorkplaceType
 	} from '#lib/constants/career';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import { breadcrumbJsonLd } from '#lib/tool/seo';
 	import { buildJobPostingJsonLd } from '#lib/util/job-posting-json-ld';
 	import type { PageData } from './$types';
 
@@ -35,11 +37,19 @@
 	let { data }: { data: PageData } = $props();
 	let job = $derived(data.job as unknown as CareerJob);
 
-	const pageUrl = $derived(`https://mariesta.com/careers/${job.slug}`);
-	const jsonLd = $derived(buildJobPostingJsonLd(job, pageUrl));
+	const path = $derived(`/careers/${job.slug}`);
+	const title = $derived(`${job.title} | Careers | MARIESTA`);
 	const metaDescription = $derived(
 		job.description.length > 155 ? `${job.description.slice(0, 152)}...` : job.description
 	);
+	const jsonLd = $derived([
+		buildJobPostingJsonLd(job, `https://mariesta.com${path}`),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Careers', path: '/careers' },
+			{ name: job.title, path }
+		])
+	]);
 
 	const applyHref = $derived(
 		job.applyUrl ?? (job.applyEmail ? `mailto:${job.applyEmail}` : null)
@@ -84,20 +94,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{job.title} | Careers | MARIESTA</title>
-	<meta name="description" content={metaDescription} />
-	<link rel="canonical" href={pageUrl} />
-	<meta property="og:title" content="{job.title} | Careers | MARIESTA" />
-	<meta property="og:description" content={metaDescription} />
-	<meta property="og:url" content={pageUrl} />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="{job.title} | Careers | MARIESTA" />
-	<meta name="twitter:description" content={metaDescription} />
-	{@html `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`}
-</svelte:head>
+<SeoHead {title} description={metaDescription} {path} {jsonLd} />
 
 <div class="relative bg-base-200">
 	<div

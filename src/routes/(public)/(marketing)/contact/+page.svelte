@@ -9,6 +9,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import CrudToast from '#lib/components/CrudToast.svelte';
 	import LoadingButton from '#lib/components/LoadingButton.svelte';
+	import SeoHead from '#lib/components/SeoHead.svelte';
 	import { scrollReveal } from '#lib/attachments/scroll-reveal';
 	import {
 		contactTopicLabels,
@@ -16,6 +17,7 @@
 		type ContactTopic
 	} from '#lib/schemas/contact';
 	import { localizeHref } from '#lib/paraglide/runtime';
+	import { breadcrumbJsonLd, organizationJsonLd, webPageJsonLd } from '#lib/tool/seo';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -41,23 +43,55 @@
 						'-=0.22'
 					);
 
-				gsap.to('.contact-orbit', {
-					rotation: 360,
-					duration: 48,
-					ease: 'none',
-					repeat: -1,
-					transformOrigin: '50% 50%'
-				});
-				gsap.to('.contact-pulse', {
-					scale: 1.08,
-					autoAlpha: 0.55,
-					duration: 2.4,
-					ease: 'sine.inOut',
-					yoyo: true,
-					repeat: -1
-				});
+				let orbitTween: { kill: () => void } | undefined;
+				let pulseTween: { kill: () => void } | undefined;
+
+				const startAmbient = () => {
+					if (orbitTween || pulseTween) return;
+					orbitTween = gsap.to('.contact-orbit', {
+						rotation: 360,
+						duration: 48,
+						ease: 'none',
+						repeat: -1,
+						transformOrigin: '50% 50%'
+					});
+					pulseTween = gsap.to('.contact-pulse', {
+						scale: 1.08,
+						autoAlpha: 0.55,
+						duration: 2.4,
+						ease: 'sine.inOut',
+						yoyo: true,
+						repeat: -1
+					});
+				};
+
+				const stopAmbient = () => {
+					orbitTween?.kill();
+					pulseTween?.kill();
+					orbitTween = undefined;
+					pulseTween = undefined;
+					gsap.set('.contact-orbit', { rotation: 0 });
+					gsap.set('.contact-pulse', { scale: 1, autoAlpha: 1 });
+				};
+
+				const io = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) startAmbient();
+							else stopAmbient();
+						}
+					},
+					{ threshold: 0.15 }
+				);
+				io.observe(node);
+
+				revert = () => {
+					io.disconnect();
+					stopAmbient();
+					ctx.revert();
+				};
 			}, node);
-			revert = () => ctx.revert();
+			if (!revert) revert = () => ctx.revert();
 		});
 
 		return () => {
@@ -159,17 +193,11 @@
 		}
 	}
 
-	const jsonLd = $derived({
-		'@context': 'https://schema.org',
-		'@type': 'ContactPage',
-		name: 'Contact MARIESTA',
-		url: 'https://mariesta.com/contact',
-		description:
-			'Contact the MARIESTA head office for partnerships, press, careers routing, and group inquiries across businesses.',
-		mainEntity: {
-			'@type': 'Organization',
-			name: 'MARIESTA',
-			url: 'https://mariesta.com',
+	const title = 'Contact MARIESTA | Head office';
+	const description =
+		'Contact the MARIESTA head office for partnerships, press, careers routing, and group inquiries across businesses of all kinds.';
+	const jsonLd = $derived([
+		organizationJsonLd({
 			email: publicEmail,
 			contactPoint: {
 				'@type': 'ContactPoint',
@@ -177,35 +205,21 @@
 				email: publicEmail,
 				url: 'https://mariesta.com/contact'
 			}
-		}
-	});
+		}),
+		webPageJsonLd({
+			type: 'ContactPage',
+			name: title,
+			path: '/contact',
+			description
+		}),
+		breadcrumbJsonLd([
+			{ name: 'Home', path: '/home' },
+			{ name: 'Contact', path: '/contact' }
+		])
+	]);
 </script>
 
-<svelte:head>
-	<title>Contact MARIESTA | Head office</title>
-	<meta
-		name="description"
-		content="Contact the MARIESTA head office for partnerships, press, careers routing, and group inquiries across businesses of all kinds."
-	/>
-	<link rel="canonical" href="https://mariesta.com/contact" />
-	<meta property="og:title" content="Contact MARIESTA | Head office" />
-	<meta
-		property="og:description"
-		content="Write the MARIESTA head office. We route partnerships, press, careers, and group questions across businesses."
-	/>
-	<meta property="og:url" content="https://mariesta.com/contact" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Contact MARIESTA | Head office" />
-	<meta
-		name="twitter:description"
-		content="Write the MARIESTA head office. We route partnerships, press, careers, and group questions across businesses."
-	/>
-	<script type="application/ld+json">
-		{JSON.stringify(jsonLd)}
-	</script>
-</svelte:head>
+<SeoHead {title} {description} path="/contact" {jsonLd} />
 
 <div class="relative overflow-hidden bg-base-200">
 	<div

@@ -1,3 +1,35 @@
-# allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+
+# Auth and private app
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /profile
+Disallow: /profile/
+Disallow: /settings
+Disallow: /settings/
+Disallow: /users
+Disallow: /users/
+Disallow: /members
+Disallow: /members/
+Disallow: /partners
+Disallow: /partners/
+Disallow: /job-posts
+Disallow: /job-posts/
+Disallow: /departments
+Disallow: /departments/
+Disallow: /facilities
+Disallow: /facilities/
+Disallow: /businesses
+Disallow: /businesses/
+
+# APIs (media is public for images)
+Disallow: /api/
+Allow: /api/media/
+
+# Cookie-locale URL prefixes (UI locale is cookie-based; avoid thin duplicate URLs)
+Disallow: /my/
+Disallow: /ja/
+
+Sitemap: https://mariesta.com/sitemap.xml

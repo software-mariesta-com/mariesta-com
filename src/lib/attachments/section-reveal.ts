@@ -4,20 +4,15 @@ export function sectionReveal(node: HTMLElement) {
 	if (reduceMotion) return;
 
 	const target = node.querySelector<HTMLElement>('.home-section-inner') ?? node;
-	let played = false;
+	target.classList.add('section-reveal-pending');
 
 	const io = new IntersectionObserver(
-		async (entries) => {
+		(entries) => {
 			for (const entry of entries) {
-				if (!entry.isIntersecting || played) continue;
-				played = true;
+				if (!entry.isIntersecting) continue;
+				target.classList.remove('section-reveal-pending');
+				target.classList.add('section-reveal-ready');
 				io.disconnect();
-				const { default: gsap } = await import('gsap');
-				gsap.fromTo(
-					target,
-					{ autoAlpha: 0.92, y: 20 },
-					{ autoAlpha: 1, y: 0, duration: 0.7, ease: 'power2.out', clearProps: 'transform' }
-				);
 			}
 		},
 		{ threshold: 0.12, rootMargin: '0px 0px -6% 0px' }

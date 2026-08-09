@@ -7,3 +7,28 @@
 
 # SvelteKit SSR runs via @sveltejs/adapter-netlify under .netlify/v1.
 # Keep publish = "build". Custom "Functions directory" in the UI is optional for your own functions only.
+
+[[headers]]
+	for = "/_app/immutable/*"
+	[headers.values]
+		Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+	for = "/fonts/*"
+	[headers.values]
+		Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+	for = "/favicon-*.svg"
+	[headers.values]
+		Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+	for = "/og-default.jpg"
+	[headers.values]
+		Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
+[[headers]]
+	for = "/apple-touch-icon.png"
+	[headers.values]
+		Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"

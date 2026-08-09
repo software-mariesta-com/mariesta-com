@@ -1,12 +1,23 @@
 <script lang="ts">
 	import MariestaGroupIllustration from '#lib/components/MariestaGroupIllustration.svelte';
-	import OurBusinesses from '#lib/components/OurBusinesses.svelte';
-	import OurPartners from '#lib/components/OurPartners.svelte';
-	import OurMembers from '#lib/components/OurMembers.svelte';
-	import JoinCommunity from '#lib/components/JoinCommunity.svelte';
+	import SeoHead from '#lib/components/SeoHead.svelte';
+	import {
+		breadcrumbJsonLd,
+		organizationJsonLd,
+		websiteJsonLd
+	} from '#lib/tool/seo';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	const title = 'MARIESTA | Own your craft. Share the upside. Grow in community.';
+	const description =
+		'MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. Steady pay, shared upside, and room to grow a life.';
+	const jsonLd = [
+		organizationJsonLd(),
+		websiteJsonLd(),
+		breadcrumbJsonLd([{ name: 'Home', path: '/home' }])
+	];
 
 	function heroMotion(node: HTMLElement) {
 		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -42,24 +53,56 @@
 					)
 					.from('.illu-spoke, .illu-orbit', { autoAlpha: 0, duration: 0.6 }, '-=0.35');
 
-				gsap.to('.illu-hub', {
-					y: -6,
-					duration: 2.8,
-					ease: 'sine.inOut',
-					yoyo: true,
-					repeat: -1
-				});
+				let hubTween: { kill: () => void } | undefined;
+				let glowTween: { kill: () => void } | undefined;
 
-				gsap.to('.illu-glow', {
-					scale: 1.06,
-					duration: 3.4,
-					ease: 'sine.inOut',
-					yoyo: true,
-					repeat: -1,
-					transformOrigin: '50% 50%'
-				});
+				const startAmbient = () => {
+					if (hubTween || glowTween) return;
+					hubTween = gsap.to('.illu-hub', {
+						y: -6,
+						duration: 2.8,
+						ease: 'sine.inOut',
+						yoyo: true,
+						repeat: -1
+					});
+					glowTween = gsap.to('.illu-glow', {
+						scale: 1.06,
+						duration: 3.4,
+						ease: 'sine.inOut',
+						yoyo: true,
+						repeat: -1,
+						transformOrigin: '50% 50%'
+					});
+				};
+
+				const stopAmbient = () => {
+					hubTween?.kill();
+					glowTween?.kill();
+					hubTween = undefined;
+					glowTween = undefined;
+					gsap.set('.illu-hub', { y: 0 });
+					gsap.set('.illu-glow', { scale: 1 });
+				};
+
+				const io = new IntersectionObserver(
+					(entries) => {
+						for (const entry of entries) {
+							if (entry.isIntersecting) startAmbient();
+							else stopAmbient();
+						}
+					},
+					{ threshold: 0.15 }
+				);
+				io.observe(node);
+
+				const prevRevert = () => ctx.revert();
+				revert = () => {
+					io.disconnect();
+					stopAmbient();
+					prevRevert();
+				};
 			}, node);
-			revert = () => ctx.revert();
+			if (!revert) revert = () => ctx.revert();
 		});
 
 		return () => {
@@ -69,43 +112,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>MARIESTA | Own your craft. Share the upside. Grow in community.</title>
-	<meta
-		name="description"
-		content="MARIESTA is a community of businesses built on expression, culture, sharing, and ownership. Steady pay, shared upside, and room to grow a life."
-	/>
-	<link rel="canonical" href="https://mariesta.com/home" />
-	<meta
-		property="og:title"
-		content="MARIESTA | Own your craft. Share the upside. Grow in community."
-	/>
-	<meta
-		property="og:description"
-		content="A community of ventures where people create freely, own together, and share success."
-	/>
-	<meta property="og:url" content="https://mariesta.com/home" />
-	<meta property="og:type" content="website" />
-	<meta property="og:image" content="https://mariesta.com/og-default.png" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta
-		name="twitter:title"
-		content="MARIESTA | Own your craft. Share the upside. Grow in community."
-	/>
-	<meta
-		name="twitter:description"
-		content="A community of ventures where people create freely, own together, and share success."
-	/>
-	{@html `<script type="application/ld+json">${JSON.stringify({
-		'@context': 'https://schema.org',
-		'@type': 'Organization',
-		name: 'MARIESTA',
-		url: 'https://mariesta.com',
-		slogan: 'Own your craft. Share the upside. Grow in community.',
-		description:
-			'A community of businesses built on expression, culture, sharing, and ownership.'
-	})}</script>`}
-</svelte:head>
+<SeoHead {title} {description} path="/home" {jsonLd} />
 
 <div class="relative bg-base-200">
 	<div
@@ -158,12 +165,20 @@
 			</div>
 		</section>
 
-		<OurBusinesses businesses={data.businesses} />
+		{#await import('#lib/components/OurBusinesses.svelte') then { default: OurBusinesses }}
+			<OurBusinesses businesses={data.businesses} />
+		{/await}
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		<OurPartners partners={data.partners} />
+		{#await import('#lib/components/OurPartners.svelte') then { default: OurPartners }}
+			<OurPartners partners={data.partners} />
+		{/await}
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		<OurMembers members={data.members} />
+		{#await import('#lib/components/OurMembers.svelte') then { default: OurMembers }}
+			<OurMembers members={data.members} />
+		{/await}
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		<JoinCommunity />
+		{#await import('#lib/components/JoinCommunity.svelte') then { default: JoinCommunity }}
+			<JoinCommunity />
+		{/await}
 	</div>
 </div>
