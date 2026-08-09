@@ -41,7 +41,7 @@ MARIESTA is a community of businesses built on expression, culture, sharing, and
 
 ## Requirements
 
-- Node.js 22+ (recommended)
+- Node.js 24+ (required by `@icons-pack/svelte-simple-icons`; Netlify uses `NODE_VERSION=24`)
 - npm
 - A PostgreSQL database (Neon or any Postgres with a connection string)
 - Optional: GitHub OAuth app, Gmail App Password, Tigris bucket
