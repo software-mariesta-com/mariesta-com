@@ -5,9 +5,9 @@
 	import LoadingButton from '#lib/components/LoadingButton.svelte';
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 	import { withFormPending } from '#lib/util/form-pending';
-	import type { ActionData } from './$types';
+	import type { ActionData, PageServerData } from './$types';
 
-	let { form }: { form: ActionData } = $props();
+	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 
 	let totpPending = $state(false);
 	let backupPending = $state(false);
@@ -31,6 +31,7 @@
 			class="grid gap-4"
 			use:enhance={withFormPending((v) => (totpPending = v))}
 		>
+			<input type="hidden" name="redirectTo" value={data.redirectTo} />
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">
 					Authenticator code<span
@@ -63,6 +64,7 @@
 			class="grid gap-4"
 			use:enhance={withFormPending((v) => (backupPending = v))}
 		>
+			<input type="hidden" name="redirectTo" value={data.redirectTo} />
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">
 					Backup code<span class="text-error align-top text-sm leading-none" aria-hidden="true"

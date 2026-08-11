@@ -12,7 +12,32 @@ export const variables = defineEnvVars({
 	},
 	BETTER_AUTH_SECRET: {
 		description:
-			'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation).'
+			'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation). Must match Menzies when sharing the auth DB / session.'
+	},
+	/**
+	 * Comma-separated trusted website origins for Better Auth + SSO redirect allowlist
+	 * (e.g. `https://menzies.mariesta.com,http://localhost:5174`).
+	 * Prefer this over TRUSTED_ORIGINS when both are set.
+	 */
+	SSO_TRUSTED_ORIGINS: {
+		description:
+			'Comma-separated trusted origins for SSO redirects and Better Auth trustedOrigins (e.g. Menzies prod + local).',
+		schema: optionalString
+	},
+	TRUSTED_ORIGINS: {
+		description:
+			'Alias for SSO_TRUSTED_ORIGINS. Comma-separated trusted website origins.',
+		schema: optionalString
+	},
+	AUTH_COOKIE_DOMAIN: {
+		description:
+			'Optional session cookie Domain for sibling SSO (e.g. `.mariesta.com`). Leave empty on localhost.',
+		schema: optionalString
+	},
+	SSO_HMAC_SECRET: {
+		description:
+			'HMAC secret for one-time SSO code handoff (localhost / cross-origin). Rotate anytime via env. Falls back to a derivation of BETTER_AUTH_SECRET when unset. Must match Menzies.',
+		schema: optionalString
 	},
 	GITHUB_CLIENT_ID: {
 		description:

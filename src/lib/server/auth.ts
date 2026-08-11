@@ -16,13 +16,17 @@ import { db } from '#lib/server/db';
 import * as schema from '#lib/server/db/schema';
 import { ensureOwnerExists } from '#lib/server/ensure-owner';
 import { sendAuthEmail, sendOtpEmail } from '#lib/server/mail';
+import { getAuthCookieDomain, getTrustedOrigins } from '#lib/server/sso/env';
 
 const githubEnabled = Boolean(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET);
+const cookieDomain = getAuthCookieDomain();
+const trustedOrigins = getTrustedOrigins();
 
 export const auth = betterAuth({
 	baseURL: ORIGIN,
 	secret: BETTER_AUTH_SECRET,
 	appName: 'MARIESTA',
+	trustedOrigins,
 	database: drizzleAdapter(db, {
 		provider: 'pg',
 		schema
@@ -72,6 +76,16 @@ export const auth = betterAuth({
 						clientSecret: GITHUB_CLIENT_SECRET!,
 						disableSignUp: true,
 						disableImplicitSignUp: true
+					}
+				}
+			}
+		: {}),
+	...(cookieDomain
+		? {
+				advanced: {
+					crossSubDomainCookies: {
+						enabled: true,
+						domain: cookieDomain
 					}
 				}
 			}
