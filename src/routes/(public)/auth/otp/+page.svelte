@@ -34,6 +34,7 @@
 			class="grid gap-4"
 			use:enhance={withFormPending((v) => (pending = v))}
 		>
+			<input type="hidden" name="redirectTo" value={data.redirectTo} />
 			<fieldset class="fieldset">
 				<legend class="fieldset-legend">
 					Email<span class="text-error align-top text-sm leading-none" aria-hidden="true">*</span>

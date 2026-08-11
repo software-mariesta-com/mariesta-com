@@ -1,16 +1,27 @@
-import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 import { auth } from '#lib/server/auth';
-import { fail, isRedirect, redirect } from '@sveltejs/kit';
+import {
+	finalizeAuthRedirect,
+	readAuthReturn,
+	rememberAuthReturn,
+	safeRedirectTo
+} from '#lib/server/sso/redirect';
+import { sessionTokenFromEvent } from '#lib/server/sso/session-token';
+import { fail, isRedirect } from '@sveltejs/kit';
 import { APIError } from 'better-auth/api';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
+	const redirectTo = safeRedirectTo(
+		event.url.searchParams.get('redirectTo') ?? event.cookies.get('mariesta_auth_return')
+	);
+	rememberAuthReturn(event, redirectTo);
+
 	if (event.locals.user) {
-		redirect(303, AUTH_ROUTES.dashboard);
+		await finalizeAuthRedirect(event, redirectTo, event.locals.session?.token);
 	}
 
 	const email = event.url.searchParams.get('email')?.trim() ?? '';
-	return { email };
+	return { email, redirectTo };
 };
 
 export const actions: Actions = {
@@ -18,6 +29,7 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const email = formData.get('email')?.toString().trim() ?? '';
 		const otp = formData.get('otp')?.toString().trim() ?? '';
+		const redirectTo = readAuthReturn(event, formData.get('redirectTo')?.toString());
 
 		if (!email) return fail(400, { message: 'Email is required', email });
 		if (!otp) return fail(400, { message: 'Code is required', email });
@@ -38,7 +50,11 @@ export const actions: Actions = {
 			return fail(500, { message: 'Unexpected error', email });
 		}
 
-		redirect(303, AUTH_ROUTES.dashboard);
+		await finalizeAuthRedirect(
+			event,
+			redirectTo,
+			sessionTokenFromEvent(event) ?? event.locals.session?.token
+		);
 	},
 
 	resend: async (event) => {

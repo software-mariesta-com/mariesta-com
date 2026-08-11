@@ -1,20 +1,33 @@
-import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 import { auth } from '#lib/server/auth';
-import { fail, isRedirect, redirect } from '@sveltejs/kit';
+import {
+	finalizeAuthRedirect,
+	readAuthReturn,
+	rememberAuthReturn,
+	safeRedirectTo
+} from '#lib/server/sso/redirect';
+import { sessionTokenFromEvent } from '#lib/server/sso/session-token';
+import { fail, isRedirect } from '@sveltejs/kit';
 import { APIError } from 'better-auth/api';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
+	const redirectTo = safeRedirectTo(
+		event.url.searchParams.get('redirectTo') ?? event.cookies.get('mariesta_auth_return')
+	);
+	rememberAuthReturn(event, redirectTo);
+
 	if (event.locals.user) {
-		redirect(303, AUTH_ROUTES.dashboard);
+		await finalizeAuthRedirect(event, redirectTo, event.locals.session?.token);
 	}
-	return {};
+
+	return { redirectTo };
 };
 
 export const actions: Actions = {
 	verifyTotp: async (event) => {
 		const formData = await event.request.formData();
 		const code = formData.get('code')?.toString() ?? '';
+		const redirectTo = readAuthReturn(event, formData.get('redirectTo')?.toString());
 
 		try {
 			await auth.api.verifyTOTP({
@@ -29,12 +42,17 @@ export const actions: Actions = {
 			return fail(500, { message: 'Unexpected error' });
 		}
 
-		redirect(303, AUTH_ROUTES.dashboard);
+		await finalizeAuthRedirect(
+			event,
+			redirectTo,
+			sessionTokenFromEvent(event) ?? event.locals.session?.token
+		);
 	},
 
 	verifyBackup: async (event) => {
 		const formData = await event.request.formData();
 		const code = formData.get('code')?.toString() ?? '';
+		const redirectTo = readAuthReturn(event, formData.get('redirectTo')?.toString());
 
 		try {
 			await auth.api.verifyBackupCode({
@@ -49,6 +67,10 @@ export const actions: Actions = {
 			return fail(500, { message: 'Unexpected error' });
 		}
 
-		redirect(303, AUTH_ROUTES.dashboard);
+		await finalizeAuthRedirect(
+			event,
+			redirectTo,
+			sessionTokenFromEvent(event) ?? event.locals.session?.token
+		);
 	}
 };
