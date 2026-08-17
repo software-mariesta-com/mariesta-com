@@ -12,5 +12,7 @@
 	"nav_theme_light": "ライト",
 	"nav_theme_dark": "ダーク",
 	"nav_theme_system": "システム",
+	"nav_login": "ログイン",
+	"nav_dashboard": "ダッシュボード",
 	"hello_world": "Hello, {name} from ja!"
 }

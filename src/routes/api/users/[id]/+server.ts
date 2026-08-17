@@ -8,7 +8,6 @@ import {
 	resendAuthUserInvite,
 	updateAuthUser
 } from '#lib/remotes/auth-user.remote';
-import { normalizeRole } from '#lib/server/permissions';
 import { z } from 'zod';
 
 export const GET: RequestHandler = async (event) => {
@@ -30,8 +29,8 @@ export const PATCH: RequestHandler = async (event) => {
 		error(400, parsed.error.issues[0]?.message ?? 'Invalid body');
 	}
 
-	const actorRole = normalizeRole(actor.role);
-	if (parsed.data.role === 'admin' && actorRole !== 'owner') {
+	const actorIsOwner = actor.role === 'owner';
+	if (parsed.data.role === 'admin' && !actorIsOwner) {
 		error(403, 'Only the owner can assign the admin role');
 	}
 

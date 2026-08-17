@@ -1,6 +1,6 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
-export const authRoles = ['owner', 'admin', 'member'] as const;
+export const authRoles = ['owner', 'admin', 'user', 'member'] as const;
 export type AuthRole = (typeof authRoles)[number];
 
 export const authRoleEnum = pgEnum('auth_role', authRoles);

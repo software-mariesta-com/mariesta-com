@@ -2,7 +2,8 @@ import { eq } from 'drizzle-orm';
 import { loginRedirectUrl } from '#lib/constants/auth-routes';
 import { db } from '#lib/server/db';
 import { user as userTable } from '#lib/server/db/schema';
-import { buildCapabilities, normalizeRole, type AuthzUser } from '#lib/server/permissions';
+import { hydrateAuthzUser } from '#lib/server/api-auth';
+import { buildCapabilities, normalizeRole } from '#lib/server/permissions';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
@@ -21,12 +22,14 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		}
 	});
 
-	const authzUser: AuthzUser = {
-		id: locals.user.id,
-		role: row?.role ?? 'member',
-		permissions: row?.permissions ?? null,
-		twoFactorEnabled: row?.twoFactorEnabled ?? false
-	};
+	const authzUser = row
+		? await hydrateAuthzUser(row)
+		: {
+				id: locals.user.id,
+				role: 'user',
+				permissions: null,
+				twoFactorEnabled: false
+			};
 
 	const capabilities = buildCapabilities(authzUser);
 	const twoFactorEnabled = Boolean(authzUser.twoFactorEnabled);

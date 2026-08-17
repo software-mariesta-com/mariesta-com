@@ -6,6 +6,8 @@ export const ADMIN_ROUTES = {
 	members: '/members',
 	partners: '/partners',
 	careers: '/job-posts',
+	pagePermissions: '/page-permissions',
+	roles: '/roles',
 	users: '/users',
 	profile: '/profile'
 } as const;

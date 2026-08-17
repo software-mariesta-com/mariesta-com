@@ -5,6 +5,28 @@ import type { PermissionAction, PermissionSection } from '#lib/constants/permiss
 import { db } from '#lib/server/db';
 import { user } from '#lib/server/db/schema';
 import { can, canMutate, normalizeRole, type AuthzUser } from '#lib/server/permissions';
+import { isElevatedRole, resolveRolePermissions } from '#lib/server/role-permissions';
+
+type UserAuthRow = {
+	id: string;
+	role: string;
+	permissions: AuthzUser['permissions'];
+	twoFactorEnabled: boolean | null;
+};
+
+/** Merge role-based permissions into an authz user row. */
+export async function hydrateAuthzUser(row: UserAuthRow): Promise<AuthzUser> {
+	const permissions = isElevatedRole(row.role)
+		? null
+		: await resolveRolePermissions(row.role);
+
+	return {
+		id: row.id,
+		role: row.role,
+		permissions,
+		twoFactorEnabled: row.twoFactorEnabled
+	};
+}
 
 /** Require a signed-in user for private API routes. Reloads role/permissions from DB. */
 export async function requireApiUser(event: RequestEvent): Promise<AuthzUser> {
@@ -26,12 +48,7 @@ export async function requireApiUser(event: RequestEvent): Promise<AuthzUser> {
 		error(401, 'Unauthorized');
 	}
 
-	return {
-		id: row.id,
-		role: row.role,
-		permissions: row.permissions,
-		twoFactorEnabled: row.twoFactorEnabled
-	};
+	return hydrateAuthzUser(row);
 }
 
 /** Require 2FA for create / update / delete mutations. */

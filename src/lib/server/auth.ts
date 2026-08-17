@@ -17,10 +17,24 @@ import * as schema from '#lib/server/db/schema';
 import { ensureOwnerExists } from '#lib/server/ensure-owner';
 import { sendAuthEmail, sendOtpEmail } from '#lib/server/mail';
 import { getAuthCookieDomain, getTrustedOrigins } from '#lib/server/sso/env';
+import { getAuthSessionOptions } from '#lib/server/auth-session-config';
 
 const githubEnabled = Boolean(GITHUB_CLIENT_ID && GITHUB_CLIENT_SECRET);
 const cookieDomain = getAuthCookieDomain();
 const trustedOrigins = getTrustedOrigins();
+const { session, advanced: sessionAdvanced } = getAuthSessionOptions();
+
+const advanced = {
+	...sessionAdvanced,
+	...(cookieDomain
+		? {
+				crossSubDomainCookies: {
+					enabled: true,
+					domain: cookieDomain
+				}
+			}
+		: {})
+};
 
 export const auth = betterAuth({
 	baseURL: ORIGIN,
@@ -36,12 +50,24 @@ export const auth = betterAuth({
 			role: {
 				type: 'string',
 				required: false,
-				defaultValue: 'member',
+				defaultValue: 'user',
 				input: false
 			},
 			permissions: {
 				type: 'json',
 				required: false,
+				input: false
+			},
+			tier: {
+				type: 'string',
+				required: false,
+				defaultValue: 'starter',
+				input: false
+			},
+			developerMode: {
+				type: 'boolean',
+				required: false,
+				defaultValue: false,
 				input: false
 			}
 		}
@@ -80,16 +106,8 @@ export const auth = betterAuth({
 				}
 			}
 		: {}),
-	...(cookieDomain
-		? {
-				advanced: {
-					crossSubDomainCookies: {
-						enabled: true,
-						domain: cookieDomain
-					}
-				}
-			}
-		: {}),
+	session,
+	...(Object.keys(advanced).length > 0 ? { advanced } : {}),
 	databaseHooks: {
 		user: {
 			create: {

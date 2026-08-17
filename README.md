@@ -14,7 +14,7 @@ MARIESTA is a community of businesses built on expression, culture, sharing, and
 ### Private admin
 
 - Auth with Better Auth (email/password, optional GitHub OAuth, OTP, password reset, 2FA)
-- Roles: `owner`, `admin`, `member` (owner/admin for user management)
+- Roles: `owner`, `admin`, `user` (default), `member` (employee; owner/admin for user management)
 - CRUD for businesses, facilities, departments, members, partners, job posts, and users
 - Image uploads for partner logos and member photos (Tigris / S3-compatible storage, proxied at `/api/media/...`)
 
@@ -79,7 +79,8 @@ Copy `.env.example` to `.env`. Variables are also declared in `src/env.ts`.
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | Postgres connection string |
 | `ORIGIN` | Yes | App base URL (e.g. `http://localhost:5173`) |
-| `BETTER_AUTH_SECRET` | Yes | Auth signing secret (32+ chars, high entropy in production) |
+| `BETTER_AUTH_SECRET` | Yes | Auth signing secret (32+ chars, high entropy in production). Must match sibling apps when sharing the auth DB. |
+| `BETTER_AUTH_SECRETS` | No | Versioned secrets for non-destructive rotation (`2:new,1:old`). See [Secret rotation](#secret-rotation-and-2fa) below. |
 | `GITHUB_CLIENT_ID` | No | GitHub OAuth client ID |
 | `GITHUB_CLIENT_SECRET` | No | GitHub OAuth client secret |
 | `SMTP_HOST` | No* | SMTP host (e.g. `smtp.gmail.com`) |
@@ -103,6 +104,36 @@ Callback URL: `{ORIGIN}/api/auth/callback/github`
 ### Gmail SMTP
 
 Use an [App Password](https://myaccount.google.com/apppasswords), not your normal Google password.
+
+### Secret rotation and 2FA
+
+Better Auth encrypts **2FA TOTP secrets** and **backup codes** in `auth_two_factor` using the auth secret. Changing `BETTER_AUTH_SECRET` without versioned rotation breaks decryption: TOTP verify returns **Invalid code** (or a 500 if decryption throws). This affects every app that shares the same auth database (Menzies, Ribbonize).
+
+**Before rotating** (preferred):
+
+1. Set versioned secrets with the **new** key first, **old** key second:
+   - `BETTER_AUTH_SECRETS=2:<new-secret>,1:<old-secret>`
+   - `BETTER_AUTH_SECRET=<old-secret>` (legacy fallback for bare-hex rows created before rotation)
+2. Deploy the **same** values on every app that shares `DATABASE_URL` / auth sessions.
+3. Restart all instances. Existing 2FA keeps working; new writes use the new key.
+
+**If you already rotated and 2FA is broken:**
+
+1. **Revert** `BETTER_AUTH_SECRET` to the previous value on every shared app (fastest if you still have the old secret).
+2. **Or** configure `BETTER_AUTH_SECRETS` as above (new first, old second) and set `BETTER_AUTH_SECRET` to the **old** secret for legacy decryption.
+3. **Or** reset 2FA for affected users and have them re-enroll (Profile → Two-factor authentication, or SQL below).
+
+Admin SQL reset (user must set up 2FA again):
+
+```sql
+-- Replace email
+SELECT id, email, two_factor_enabled FROM auth_user WHERE email = 'you@example.com';
+
+DELETE FROM auth_two_factor WHERE user_id = '<user-id>';
+UPDATE auth_user SET two_factor_enabled = false WHERE id = '<user-id>';
+```
+
+`SSO_HMAC_SECRET` rotates independently; it does not affect 2FA.
 
 ## Scripts
 
@@ -171,7 +202,8 @@ Publish status is typically `draft` | `published`. Careers include employment ty
 | --- | --- |
 | `owner` | Exactly one; full access |
 | `admin` | Elevated access including user management |
-| `member` | Default role |
+| `user` | Default role for regular accounts (non-employee) |
+| `member` | Employee / internal staff |
 
 ## Architecture: CRUD workflow
 

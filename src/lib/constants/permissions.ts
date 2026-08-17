@@ -6,6 +6,8 @@ export const PERMISSION_SECTIONS = [
 	'members',
 	'partners',
 	'careers',
+	'page_permissions',
+	'roles',
 	'users',
 	'profile'
 ] as const;
@@ -26,6 +28,8 @@ export const PERMISSION_SECTION_LABELS: Record<PermissionSection, string> = {
 	members: 'Members',
 	partners: 'Partners',
 	careers: 'Careers',
+	page_permissions: 'Page permissions',
+	roles: 'Roles',
 	users: 'Users',
 	profile: 'Profile'
 };
@@ -39,6 +43,8 @@ export const SIDEBAR_SECTIONS = [
 	'members',
 	'partners',
 	'careers',
+	'page_permissions',
+	'roles',
 	'users'
 ] as const satisfies readonly PermissionSection[];
 
@@ -50,7 +56,8 @@ export function fullSectionPermissions(): SectionPermissions {
 	return { view: true, create: true, update: true, delete: true };
 }
 
-export function defaultMemberPermissions(): UserPermissions {
+/** Default for the `user` role: profile access only. */
+export function defaultUserPermissions(): UserPermissions {
 	const permissions: UserPermissions = {};
 	for (const section of PERMISSION_SECTIONS) {
 		permissions[section] =
@@ -59,6 +66,19 @@ export function defaultMemberPermissions(): UserPermissions {
 				: emptySectionPermissions();
 	}
 	return permissions;
+}
+
+/** Default for the `member` (employee) role: dashboard + profile. */
+export function defaultEmployeePermissions(): UserPermissions {
+	const permissions = defaultUserPermissions();
+	permissions.dashboard = { view: true, create: false, update: false, delete: false };
+	permissions.profile = { view: true, create: false, update: true, delete: false };
+	return permissions;
+}
+
+/** @deprecated Use {@link defaultUserPermissions} or {@link defaultEmployeePermissions}. */
+export function defaultMemberPermissions(): UserPermissions {
+	return defaultUserPermissions();
 }
 
 export function fullPermissions(): UserPermissions {

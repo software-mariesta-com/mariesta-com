@@ -1,15 +1,19 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import Briefcase from '@lucide/svelte/icons/briefcase';
 	import Building2 from '@lucide/svelte/icons/building-2';
 	import Factory from '@lucide/svelte/icons/factory';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Handshake from '@lucide/svelte/icons/handshake';
+	import KeyRound from '@lucide/svelte/icons/key-round';
 	import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
 	import Menu from '@lucide/svelte/icons/menu';
 	import Network from '@lucide/svelte/icons/network';
+	import Search from '@lucide/svelte/icons/search';
 	import ShieldAlert from '@lucide/svelte/icons/shield-alert';
+	import Shield from '@lucide/svelte/icons/shield';
 	import Users from '@lucide/svelte/icons/users';
 	import UserCog from '@lucide/svelte/icons/user-cog';
 	import UserRound from '@lucide/svelte/icons/user-round';
@@ -18,9 +22,13 @@
 	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 	import type { PermissionSection } from '#lib/constants/permissions';
 	import NavProgress from '#lib/components/NavProgress.svelte';
+	import SidebarSearch from '#lib/components/SidebarSearch.svelte';
 	import type { LayoutServerData } from './$types';
 
 	let { data, children }: { data: LayoutServerData; children: Snippet } = $props();
+
+	let searchOpen = $state(false);
+	const isMac = browser && /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 
 	const navItems: {
 		href: string;
@@ -35,12 +43,25 @@
 		{ href: ADMIN_ROUTES.members, label: 'Members', icon: Users, section: 'members' },
 		{ href: ADMIN_ROUTES.partners, label: 'Partners', icon: Handshake, section: 'partners' },
 		{ href: ADMIN_ROUTES.careers, label: 'Careers', icon: Briefcase, section: 'careers' },
+		{
+			href: ADMIN_ROUTES.pagePermissions,
+			label: 'Page permissions',
+			icon: KeyRound,
+			section: 'page_permissions'
+		},
+		{ href: ADMIN_ROUTES.roles, label: 'Roles', icon: Shield, section: 'roles' },
 		{ href: ADMIN_ROUTES.users, label: 'Users', icon: UserCog, section: 'users' }
 	];
 
 	const visibleNav = $derived(
 		navItems.filter((item) => data.capabilities[item.section]?.view)
 	);
+
+	const searchItems = $derived([
+		...visibleNav.map(({ href, label, icon }) => ({ href, label, icon })),
+		{ href: AUTH_ROUTES.profile, label: 'Profile', icon: UserRound },
+		{ href: '/home', label: 'View website', icon: Globe }
+	]);
 
 	const show2faBanner = $derived(!data.twoFactorEnabled);
 
@@ -117,6 +138,17 @@
 			<footer class="border-base-300 shrink-0 border-t p-3">
 				<ul class="menu w-full gap-1 p-0">
 					<li>
+						<button
+							type="button"
+							class="cursor-pointer"
+							onclick={() => (searchOpen = true)}
+						>
+							<Search class="h-4 w-4" aria-hidden="true" />
+							<span class="flex-1 text-left">Search</span>
+							<kbd class="kbd kbd-sm opacity-70">{isMac ? '⌘K' : 'Ctrl+K'}</kbd>
+						</button>
+					</li>
+					<li>
 						<a href="/home" class="cursor-pointer">
 							<Globe class="h-4 w-4" aria-hidden="true" />
 							View website
@@ -136,3 +168,6 @@
 		</aside>
 	</div>
 </div>
+
+<!-- Sibling of the drawer shell so the modal is not clipped by sidebar overflow / stacking -->
+<SidebarSearch bind:open={searchOpen} items={searchItems} />

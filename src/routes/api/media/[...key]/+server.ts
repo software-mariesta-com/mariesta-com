@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getObject } from '#lib/server/storage/tigris';
 
-const ALLOWED_PREFIX = /^(members|partners)\//;
+const ALLOWED_PREFIX = /^(members|partners|avatars)\//;
 
 export const GET: RequestHandler = async ({ params }) => {
 	const keyParam = params.key;

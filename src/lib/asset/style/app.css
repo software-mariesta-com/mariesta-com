@@ -37,6 +37,11 @@
 
 html {
 	scroll-behavior: smooth;
+	overscroll-behavior: none;
+}
+
+body {
+	overscroll-behavior: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

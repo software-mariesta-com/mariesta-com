@@ -8,10 +8,12 @@ export const load: PageServerLoad = async ({ parent, fetch }) => {
 		redirect(303, ADMIN_ROUTES.dashboard);
 	}
 
-	const res = await fetch('/api/users');
-	if (!res.ok) {
+	const [usersRes, rolesRes] = await Promise.all([fetch('/api/users'), fetch('/api/user-roles')]);
+
+	if (!usersRes.ok) {
 		return {
 			items: [],
+			roles: [],
 			loadError: 'Failed to load users',
 			canCreate: capabilities.users.create,
 			canUpdate: capabilities.users.update,
@@ -19,8 +21,11 @@ export const load: PageServerLoad = async ({ parent, fetch }) => {
 		};
 	}
 
+	const roles = rolesRes.ok ? await rolesRes.json() : [];
+
 	return {
-		items: await res.json(),
+		items: await usersRes.json(),
+		roles,
 		loadError: null as string | null,
 		canCreate: capabilities.users.create,
 		canUpdate: capabilities.users.update,

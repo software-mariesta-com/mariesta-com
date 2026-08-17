@@ -45,13 +45,35 @@ export function toMediaUrl(stored: string | null | undefined): string | null {
 
 	const membersIdx = stored.indexOf('members/');
 	const partnersIdx = stored.indexOf('partners/');
-	const idx =
-		membersIdx >= 0 && partnersIdx >= 0
-			? Math.min(membersIdx, partnersIdx)
-			: Math.max(membersIdx, partnersIdx);
+	const avatarsIdx = stored.indexOf('avatars/');
+	const idx = [membersIdx, partnersIdx, avatarsIdx]
+		.filter((i) => i >= 0)
+		.reduce((min, i) => (min < 0 ? i : Math.min(min, i)), -1);
 	if (idx < 0) return stored;
 
 	return mediaPublicUrl(stored.slice(idx).split('?')[0]!);
+}
+
+/** Extract a Tigris object key from a stored media URL or raw key. */
+export function mediaKeyFromStored(stored: string | null | undefined): string | null {
+	if (!stored) return null;
+	if (stored.startsWith('/api/media/')) {
+		return stored
+			.slice('/api/media/'.length)
+			.split('/')
+			.map((segment) => decodeURIComponent(segment))
+			.join('/');
+	}
+
+	const membersIdx = stored.indexOf('members/');
+	const partnersIdx = stored.indexOf('partners/');
+	const avatarsIdx = stored.indexOf('avatars/');
+	const idx = [membersIdx, partnersIdx, avatarsIdx]
+		.filter((i) => i >= 0)
+		.reduce((min, i) => (min < 0 ? i : Math.min(min, i)), -1);
+	if (idx < 0) return null;
+
+	return stored.slice(idx).split('?')[0] ?? null;
 }
 
 export async function uploadObject(

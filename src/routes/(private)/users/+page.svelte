@@ -7,17 +7,6 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import CrudToast, { type CrudToastKind } from '#lib/components/CrudToast.svelte';
 	import LoadingButton from '#lib/components/LoadingButton.svelte';
-	import {
-		PERMISSION_ACTIONS,
-		PERMISSION_SECTION_LABELS,
-		PERMISSION_SECTIONS,
-		SIDEBAR_SECTIONS,
-		defaultMemberPermissions,
-		type PermissionAction,
-		type PermissionSection,
-		type SectionPermissions,
-		type UserPermissions
-	} from '#lib/constants/permissions';
 	import { formatShortDateTime } from '#lib/util/format-datetime';
 	import type { PageData } from './$types';
 
@@ -25,16 +14,23 @@
 		id: string;
 		name: string;
 		email: string;
-		role: 'owner' | 'admin' | 'member';
-		permissions: UserPermissions | null;
+		role: string;
+		permissions: Record<string, unknown> | null;
 		twoFactorEnabled: boolean | null;
 		createdAt: string;
 		updatedAt: string;
 	};
 
+	type RoleOption = {
+		slug: string;
+		name: string;
+		isSystem: boolean;
+	};
+
 	let { data }: { data: PageData } = $props();
 
 	let items = $derived(data.items as AuthUserRow[]);
+	let roleOptions = $derived(data.roles as RoleOption[]);
 	let loading = $state(false);
 	let loadError = $derived(data.loadError);
 
@@ -49,8 +45,7 @@
 	let editing = $state<AuthUserRow | null>(null);
 	let formName = $state('');
 	let formEmail = $state('');
-	let formRole = $state<'admin' | 'member'>('member');
-	let formPermissions = $state<UserPermissions>(defaultMemberPermissions());
+	let formRole = $state('user');
 	let saving = $state(false);
 
 	let deleteTarget = $state<AuthUserRow | null>(null);
@@ -62,8 +57,21 @@
 	let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const ROW_HEIGHT = 48;
-	const actorRole = $derived(data.user?.role ?? 'member');
-	const canInviteAdmin = $derived(actorRole === 'owner');
+	const actorIsOwner = $derived(data.user?.role === 'owner');
+
+	const assignableRoles = $derived(
+		roleOptions.length > 0
+			? roleOptions.filter((role) => {
+					if (role.slug === 'owner') return false;
+					if (role.slug === 'admin' && !actorIsOwner) return false;
+					return true;
+				})
+			: [
+					{ slug: 'user', name: 'User', isSystem: true },
+					{ slug: 'member', name: 'Employee', isSystem: true },
+					...(actorIsOwner ? [{ slug: 'admin', name: 'Admin', isSystem: true }] : [])
+				]
+	);
 
 	const filtered = $derived(
 		items.filter((item) => {
@@ -124,17 +132,6 @@
 		}
 	}
 
-	function clonePermissions(source?: UserPermissions | null): UserPermissions {
-		const base = defaultMemberPermissions();
-		if (!source) return base;
-		for (const section of PERMISSION_SECTIONS) {
-			if (source[section]) {
-				base[section] = { ...source[section]! };
-			}
-		}
-		return base;
-	}
-
 	function openCreate() {
 		if (!data.canCreate) {
 			showToast('Enable 2FA in Profile to invite users, or you lack permission', 'warning');
@@ -143,8 +140,7 @@
 		editing = null;
 		formName = '';
 		formEmail = '';
-		formRole = 'member';
-		formPermissions = defaultMemberPermissions();
+		formRole = assignableRoles[0]?.slug ?? 'user';
 		dialogOpen = true;
 	}
 
@@ -159,29 +155,8 @@
 		editing = item;
 		formName = item.name;
 		formEmail = item.email;
-		formRole = item.role === 'admin' ? 'admin' : 'member';
-		formPermissions = clonePermissions(item.permissions);
+		formRole = item.role;
 		dialogOpen = true;
-	}
-
-	function setPerm(section: PermissionSection, action: PermissionAction, value: boolean) {
-		const current = formPermissions[section] ?? {
-			view: false,
-			create: false,
-			update: false,
-			delete: false
-		};
-		formPermissions = {
-			...formPermissions,
-			[section]: { ...current, [action]: value }
-		};
-	}
-
-	function toggleSectionView(section: PermissionSection, value: boolean) {
-		const next: SectionPermissions = value
-			? { view: true, create: false, update: false, delete: false }
-			: { view: false, create: false, update: false, delete: false };
-		formPermissions = { ...formPermissions, [section]: next };
 	}
 
 	async function saveItem(event: Event) {
@@ -190,11 +165,10 @@
 		saving = true;
 		try {
 			if (editing) {
-				const payload: Record<string, unknown> = {
+				const payload = {
 					name: formName,
 					role: formRole
 				};
-				if (formRole === 'member') payload.permissions = formPermissions;
 				const res = await fetch(`/api/users/${editing.id}`, {
 					method: 'PATCH',
 					headers: { 'Content-Type': 'application/json' },
@@ -203,12 +177,11 @@
 				if (!res.ok) throw new Error(await res.text());
 				showToast('User updated');
 			} else {
-				const payload: Record<string, unknown> = {
+				const payload = {
 					name: formName,
 					email: formEmail,
 					role: formRole
 				};
-				if (formRole === 'member') payload.permissions = formPermissions;
 				const res = await fetch('/api/users', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
@@ -260,7 +233,13 @@
 		}
 	}
 
-	const matrixSections = SIDEBAR_SECTIONS;
+	const roleNameBySlug = $derived(
+		Object.fromEntries([
+			['owner', 'Owner'],
+			...roleOptions.map((role) => [role.slug, role.name]),
+			...assignableRoles.map((role) => [role.slug, role.name])
+		])
+	);
 </script>
 
 <svelte:head>
@@ -300,8 +279,11 @@
 							>
 								<option value="">Role</option>
 								<option value="owner">Owner</option>
-								<option value="admin">Admin</option>
-								<option value="member">Member</option>
+								{#each roleOptions as role (role.slug)}
+									{#if role.slug !== 'owner'}
+										<option value={role.slug}>{role.name}</option>
+									{/if}
+								{/each}
 							</select>
 						</th>
 						<th>
@@ -398,7 +380,7 @@
 													: 'badge-ghost'
 										]}
 									>
-										{item.role}
+										{roleNameBySlug[item.role] ?? item.role}
 									</span>
 								</td>
 								<td>
@@ -512,57 +494,14 @@
 						bind:value={formRole}
 						required
 					>
-						<option value="member">Member</option>
-						{#if canInviteAdmin}
-							<option value="admin">Admin</option>
-						{/if}
+						{#each assignableRoles as role (role.slug)}
+							<option value={role.slug}>{role.name}</option>
+						{/each}
 					</select>
 				</label>
-
-				{#if formRole === 'member'}
-					<div class="overflow-x-auto">
-						<p class="label-text mb-2 font-medium">Permissions</p>
-						<table class="table table-sm table-zebra [&_tbody_tr]:hover:bg-primary/40">
-							<thead>
-								<tr>
-									<th>Section</th>
-									{#each PERMISSION_ACTIONS as action (action)}
-										<th class="text-center capitalize">{action}</th>
-									{/each}
-								</tr>
-							</thead>
-							<tbody>
-								{#each matrixSections as section (section)}
-									{@const perms = formPermissions[section]}
-									<tr>
-										<td>{PERMISSION_SECTION_LABELS[section]}</td>
-										{#each PERMISSION_ACTIONS as action (action)}
-											<td class="text-center">
-												<input
-													type="checkbox"
-													class="checkbox checkbox-sm cursor-pointer"
-													checked={Boolean(perms?.[action])}
-													onchange={(e) => {
-														const checked = e.currentTarget.checked;
-														if (action === 'view') {
-															toggleSectionView(section, checked);
-														} else {
-															setPerm(section, action, checked);
-															if (checked) setPerm(section, 'view', true);
-														}
-													}}
-													aria-label={`${PERMISSION_SECTION_LABELS[section]} ${action}`}
-												/>
-											</td>
-										{/each}
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				{:else}
-					<p class="text-sm text-base-content/70">Admins have full access to all sections.</p>
-				{/if}
+				<p class="text-sm text-base-content/70">
+					Permissions are inherited from the selected role. Edit defaults under Roles.
+				</p>
 			</div>
 			<div class="modal-action">
 				<button

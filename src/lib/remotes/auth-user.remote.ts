@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { asc, eq, ne } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import { command, query } from '$app/server';
 import { hashPassword } from 'better-auth/crypto';
@@ -6,16 +6,11 @@ import { generateId } from '@better-auth/core/utils/id';
 import { z } from 'zod';
 import { ORIGIN } from '$app/env/private';
 import { AUTH_ROUTES } from '#lib/constants/auth-routes';
-import {
-	inviteUserSchema,
-	parsePermissions,
-	updateAuthUserSchema
-} from '#lib/schemas/auth-user';
+import { inviteUserSchema, updateAuthUserSchema } from '#lib/schemas/auth-user';
 import { auth } from '#lib/server/auth';
 import { db } from '#lib/server/db';
-import { account, user } from '#lib/server/db/schema';
+import { account, appRole, user } from '#lib/server/db/schema';
 import { ensureOwnerExists } from '#lib/server/ensure-owner';
-import { normalizeRole } from '#lib/server/permissions';
 
 const userListColumns = {
 	id: true,
@@ -38,6 +33,17 @@ async function findAuthUserById(id: string) {
 	return row;
 }
 
+async function assertAssignableRole(roleSlug: string) {
+	if (roleSlug === 'owner') {
+		error(400, 'Owner role cannot be assigned here');
+	}
+
+	const role = await db.query.appRole.findFirst({
+		where: eq(appRole.slug, roleSlug)
+	});
+	if (!role) error(400, 'Role not found');
+}
+
 export const listAuthUsers = query(async () => {
 	await ensureOwnerExists();
 	return db.query.user.findMany({
@@ -50,8 +56,24 @@ export const getAuthUser = query(z.object({ id: z.string().min(1) }), async ({ i
 	return findAuthUserById(id);
 });
 
+export const listAssignableRoles = query(async () => {
+	await ensureOwnerExists();
+	return db.query.appRole.findMany({
+		where: ne(appRole.slug, 'owner'),
+		columns: {
+			id: true,
+			slug: true,
+			name: true,
+			isSystem: true,
+			sortOrder: true
+		},
+		orderBy: [asc(appRole.sortOrder), asc(appRole.name)]
+	});
+});
+
 export const inviteAuthUser = command(inviteUserSchema, async (input) => {
 	await ensureOwnerExists();
+	await assertAssignableRole(input.role);
 
 	const email = input.email.toLowerCase();
 	const existing = await db.query.user.findFirst({
@@ -61,8 +83,6 @@ export const inviteAuthUser = command(inviteUserSchema, async (input) => {
 
 	const id = generateId();
 	const now = new Date();
-	const hashed = await hashPassword(generateId(32));
-	const permissions = input.role === 'member' ? parsePermissions(input.permissions) : null;
 
 	await db.insert(user).values({
 		id,
@@ -70,12 +90,13 @@ export const inviteAuthUser = command(inviteUserSchema, async (input) => {
 		email,
 		emailVerified: true,
 		role: input.role,
-		permissions,
+		permissions: null,
 		twoFactorEnabled: false,
 		createdAt: now,
 		updatedAt: now
 	});
 
+	const hashed = await hashPassword(generateId(32));
 	await db.insert(account).values({
 		id: generateId(),
 		accountId: id,
@@ -100,34 +121,27 @@ export const updateAuthUser = command(updateAuthUserSchema, async ({ id, ...inpu
 	await ensureOwnerExists();
 
 	const existing = await findAuthUserById(id);
-	const currentRole = normalizeRole(existing.role);
 
-	if (currentRole === 'owner') {
-		if (input.role) {
-			error(400, 'Cannot change the owner role');
-		}
+	if (existing.role === 'owner' && input.role) {
+		error(400, 'Cannot change the owner role');
 	}
 
 	const patch: {
 		name?: string;
-		role?: 'admin' | 'member';
-		permissions?: ReturnType<typeof parsePermissions> | null;
+		role?: string;
+		permissions?: null;
 		updatedAt: Date;
 	} = { updatedAt: new Date() };
 
 	if (input.name !== undefined) patch.name = input.name;
 
 	if (input.role !== undefined) {
-		if (currentRole === 'owner') {
+		if (existing.role === 'owner') {
 			error(400, 'Cannot change the owner role');
 		}
+		await assertAssignableRole(input.role);
 		patch.role = input.role;
-		patch.permissions =
-			input.role === 'member'
-				? parsePermissions(input.permissions ?? existing.permissions)
-				: null;
-	} else if (input.permissions !== undefined && currentRole === 'member') {
-		patch.permissions = parsePermissions(input.permissions);
+		patch.permissions = null;
 	}
 
 	const [row] = await db.update(user).set(patch).where(eq(user.id, id)).returning({
@@ -150,7 +164,7 @@ export const deleteAuthUser = command(z.object({ id: z.string().min(1) }), async
 	await ensureOwnerExists();
 
 	const existing = await findAuthUserById(id);
-	if (normalizeRole(existing.role) === 'owner') {
+	if (existing.role === 'owner') {
 		error(400, 'Cannot delete the owner');
 	}
 
@@ -182,7 +196,7 @@ export const transferOwnership = command(
 		const from = await findAuthUserById(fromOwnerId);
 		const to = await findAuthUserById(toUserId);
 
-		if (normalizeRole(from.role) !== 'owner') {
+		if (from.role !== 'owner') {
 			error(403, 'Only the owner can transfer ownership');
 		}
 

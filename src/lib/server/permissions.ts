@@ -1,12 +1,13 @@
 import type { AuthRole } from '#lib/server/db/schema/enums';
 import {
-	defaultMemberPermissions,
+	defaultUserPermissions,
 	fullPermissions,
 	type PermissionAction,
 	type PermissionSection,
 	type SectionPermissions,
 	type UserPermissions
 } from '#lib/constants/permissions';
+import { isElevatedRole } from '#lib/server/role-permissions';
 
 export type AuthzUser = {
 	id: string;
@@ -16,17 +17,16 @@ export type AuthzUser = {
 };
 
 export function normalizeRole(role: unknown): AuthRole {
-	if (role === 'owner' || role === 'admin' || role === 'member') return role;
-	return 'member';
+	if (role === 'owner' || role === 'admin' || role === 'user' || role === 'member') return role;
+	return 'user';
 }
 
 export function resolvePermissions(user: AuthzUser): UserPermissions {
-	const role = normalizeRole(user.role);
-	if (role === 'owner' || role === 'admin') {
+	if (isElevatedRole(user.role)) {
 		return fullPermissions();
 	}
 	return {
-		...defaultMemberPermissions(),
+		...defaultUserPermissions(),
 		...(user.permissions ?? {})
 	};
 }

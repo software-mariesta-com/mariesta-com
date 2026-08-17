@@ -1,4 +1,5 @@
 import { asc, eq, sql } from 'drizzle-orm';
+import { ensureDefaultRoles } from '#lib/server/ensure-default-roles';
 import { db } from '#lib/server/db';
 import { user } from '#lib/server/db/schema';
 
@@ -7,6 +8,7 @@ import { user } from '#lib/server/db/schema';
  * Safe to call repeatedly (no-op when an owner already exists).
  */
 export async function ensureOwnerExists(): Promise<{ id: string; email: string } | null> {
+	await ensureDefaultRoles();
 	const [existingOwner] = await db
 		.select({ id: user.id, email: user.email })
 		.from(user)

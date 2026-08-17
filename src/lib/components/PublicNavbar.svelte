@@ -8,13 +8,16 @@
 	import Palette from '@lucide/svelte/icons/palette';
 	import Sun from '@lucide/svelte/icons/sun';
 	import { closeDetailsOnOutside } from '#lib/attachments/close-details-on-outside';
+	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
 	import {
 		nav_about,
 		nav_businesses,
 		nav_career,
 		nav_contact,
+		nav_dashboard,
 		nav_home,
 		nav_language,
+		nav_login,
 		nav_members,
 		nav_partners,
 		nav_theme,
@@ -35,6 +38,12 @@
 		hasPreferencesConsent,
 		openCookieSettings
 	} from '#lib/store/local-storage/cookie-consent';
+
+	type NavbarUser = { name: string; email: string };
+
+	let { user = null }: { user?: NavbarUser | null } = $props();
+
+	const isLoggedIn = $derived(Boolean(user));
 
 	const LANGUAGE_OPTIONS: { value: Locale; label: string }[] = [
 		{ value: 'en', label: 'English' },
@@ -156,6 +165,26 @@
 							</a>
 						</li>
 					{/each}
+					<li><hr class="my-1" /></li>
+					<li>
+						{#if isLoggedIn}
+							<a
+								href={AUTH_ROUTES.dashboard}
+								class="cursor-pointer font-medium"
+								onclick={() => (menuOpen = false)}
+							>
+								{nav_dashboard()}
+							</a>
+						{:else}
+							<a
+								href={AUTH_ROUTES.login}
+								class="cursor-pointer font-medium"
+								onclick={() => (menuOpen = false)}
+							>
+								{nav_login()}
+							</a>
+						{/if}
+					</li>
 				</ul>
 			</details>
 		</div>
@@ -254,6 +283,16 @@
 				</ul>
 			</details>
 		</div>
+
+		{#if isLoggedIn}
+			<a href={AUTH_ROUTES.dashboard} class="btn btn-primary btn-sm me-2 cursor-pointer">
+				{nav_dashboard()}
+			</a>
+		{:else}
+			<a href={AUTH_ROUTES.login} class="btn btn-primary btn-sm me-2 cursor-pointer">
+				{nav_login()}
+			</a>
+		{/if}
 	</div>
 </div>
 

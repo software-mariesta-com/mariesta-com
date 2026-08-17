@@ -55,7 +55,7 @@
 
 <div class="bg-base-200 flex min-h-svh flex-col">
 	<NavProgress />
-	<PublicNavbar />
+	<PublicNavbar user={data.user} />
 	<div class="flex-1">{@render children()}</div>
 	<PublicFooter businesses={data.businesses} />
 	{#if BackToTopComp}
