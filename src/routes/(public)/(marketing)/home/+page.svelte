@@ -1,5 +1,9 @@
 <script lang="ts">
+	import JoinCommunity from '#lib/components/JoinCommunity.svelte';
 	import MariestaGroupIllustration from '#lib/components/MariestaGroupIllustration.svelte';
+	import OurBusinesses from '#lib/components/OurBusinesses.svelte';
+	import OurMembers from '#lib/components/OurMembers.svelte';
+	import OurPartners from '#lib/components/OurPartners.svelte';
 	import SeoHead from '#lib/components/SeoHead.svelte';
 	import {
 		breadcrumbJsonLd,
@@ -165,20 +169,12 @@
 			</div>
 		</section>
 
-		{#await import('#lib/components/OurBusinesses.svelte') then { default: OurBusinesses }}
-			<OurBusinesses businesses={data.businesses} />
-		{/await}
+		<OurBusinesses businesses={data.businesses} />
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		{#await import('#lib/components/OurPartners.svelte') then { default: OurPartners }}
-			<OurPartners partners={data.partners} />
-		{/await}
+		<OurPartners partners={data.partners} />
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		{#await import('#lib/components/OurMembers.svelte') then { default: OurMembers }}
-			<OurMembers members={data.members} />
-		{/await}
+		<OurMembers members={data.members} />
 		<div class="divider mx-auto max-w-6xl px-6" role="separator"></div>
-		{#await import('#lib/components/JoinCommunity.svelte') then { default: JoinCommunity }}
-			<JoinCommunity />
-		{/await}
+		<JoinCommunity />
 	</div>
 </div>

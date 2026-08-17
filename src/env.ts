@@ -12,7 +12,12 @@ export const variables = defineEnvVars({
 	},
 	BETTER_AUTH_SECRET: {
 		description:
-			'Secret used to sign tokens. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation). Must match Menzies when sharing the auth DB / session.'
+			'Secret used to sign tokens and as legacy fallback when decrypting data encrypted before versioned rotation. For production use 32 characters generated with high entropy. See [Better Auth installation](https://www.better-auth.com/docs/installation). Must match Menzies when sharing the auth DB / session.'
+	},
+	BETTER_AUTH_SECRETS: {
+		description:
+			'Optional versioned secrets for non-destructive BETTER_AUTH_SECRET rotation (e.g. `2:new-secret,1:old-secret`). First entry encrypts new data; later entries decrypt old envelopes. When rotating, keep the previous secret in BETTER_AUTH_SECRET for bare-hex legacy rows (2FA TOTP secrets, backup codes). Must match Menzies when sharing the auth DB.',
+		schema: optionalString
 	},
 	/**
 	 * Comma-separated trusted website origins for Better Auth + SSO redirect allowlist
@@ -32,6 +37,30 @@ export const variables = defineEnvVars({
 	AUTH_COOKIE_DOMAIN: {
 		description:
 			'Optional session cookie Domain for sibling SSO (e.g. `.mariesta.com`). Leave empty on localhost.',
+		schema: optionalString
+	},
+	AUTH_SESSION_EXPIRES_IN: {
+		description:
+			'Max session lifetime (e.g. `2h`, `7200`, or seconds). Default: `2h`. See Better Auth session config.',
+		schema: optionalString
+	},
+	AUTH_SESSION_UPDATE_AGE: {
+		description:
+			'Extend session expiry when active (e.g. `1h`, `3600`). Default: `1h`. See Better Auth session config.',
+		schema: optionalString
+	},
+	AUTH_SESSION_COOKIE_CACHE_ENABLED: {
+		description:
+			'Cache session in cookie for faster getSession. Default: `false` so role/permission revokes apply immediately.',
+		schema: optionalString
+	},
+	AUTH_SESSION_COOKIE_CACHE_MAX_AGE: {
+		description: 'Cookie session cache TTL (e.g. `30m`, `1800`). Default: `30m`.',
+		schema: optionalString
+	},
+	AUTH_SESSION_SECURE_COOKIES: {
+		description:
+			'Force Secure session cookies (`true`/`false`). Unset = auto from ORIGIN (https → secure).',
 		schema: optionalString
 	},
 	SSO_HMAC_SECRET: {
@@ -99,6 +128,16 @@ export const variables = defineEnvVars({
 	},
 	TIGRIS_BUCKET_NAME: {
 		description: 'Tigris bucket name for uploaded images.',
+		schema: optionalString
+	},
+	TIER_CHANGE_URL: {
+		description:
+			'External URL where users can view pricing or change their subscription tier. Defaults to ORIGIN/home when unset.',
+		schema: optionalString
+	},
+	BROWSE_PLANS_URL: {
+		description:
+			'External URL for browsing software plans (e.g. Menzies store). Defaults to the first SSO_TRUSTED_ORIGINS entry when unset.',
 		schema: optionalString
 	}
 });

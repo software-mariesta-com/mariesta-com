@@ -3,7 +3,6 @@ import type { RequestHandler } from './$types';
 import { requireApiUser, requirePermission } from '#lib/server/api-auth';
 import { inviteUserSchema } from '#lib/schemas/auth-user';
 import { inviteAuthUser, listAuthUsers } from '#lib/remotes/auth-user.remote';
-import { normalizeRole } from '#lib/server/permissions';
 
 export const GET: RequestHandler = async (event) => {
 	const user = await requireApiUser(event);
@@ -22,8 +21,8 @@ export const POST: RequestHandler = async (event) => {
 		error(400, parsed.error.issues[0]?.message ?? 'Invalid body');
 	}
 
-	const actorRole = normalizeRole(actor.role);
-	if (parsed.data.role === 'admin' && actorRole !== 'owner') {
+	const actorIsOwner = actor.role === 'owner';
+	if (parsed.data.role === 'admin' && !actorIsOwner) {
 		error(403, 'Only the owner can invite admins');
 	}
 

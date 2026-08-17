@@ -72,6 +72,19 @@ export const partner = pgTable('master_partner', {
 	...timestamps
 });
 
+/** Route / section permission records bound to roles via `auth_role_page_permission`. */
+export const pagePermission = pgTable('master_page_permission', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+	routePattern: text('route_pattern').notNull(),
+	section: text('section').notNull(),
+	action: text('action').notNull(),
+	description: text('description'),
+	sortOrder: integer('sort_order').notNull().default(0),
+	...timestamps
+});
+
 export const career = pgTable('master_career', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	title: text('title').notNull(),

@@ -3,7 +3,7 @@
 	import ShieldCheck from '@lucide/svelte/icons/shield-check';
 	import AuthToast from '#lib/components/AuthToast.svelte';
 	import LoadingButton from '#lib/components/LoadingButton.svelte';
-	import { AUTH_ROUTES } from '#lib/constants/auth-routes';
+	import OtpCodeField from '#lib/components/OtpCodeField.svelte';
 	import { withFormPending } from '#lib/util/form-pending';
 	import type { ActionData, PageServerData } from './$types';
 
@@ -39,13 +39,10 @@
 						aria-hidden="true">*</span
 					>
 				</legend>
-				<input
+				<OtpCodeField
 					id="totp-code"
-					class="input w-full cursor-text tracking-widest"
 					name="code"
-					inputmode="numeric"
-					autocomplete="one-time-code"
-					required
+					label="Authenticator code"
 					disabled={totpPending || backupPending}
 				/>
 			</fieldset>
@@ -84,10 +81,6 @@
 				Verify backup code
 			</LoadingButton>
 		</form>
-
-		<div class="text-sm">
-			<a class="link link-hover cursor-pointer" href={AUTH_ROUTES.login}>Back to login</a>
-		</div>
 	</div>
 </div>
 

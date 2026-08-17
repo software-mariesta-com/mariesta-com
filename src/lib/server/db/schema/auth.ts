@@ -10,12 +10,48 @@ import {
 	integer,
 	jsonb,
 	pgTable,
+	primaryKey,
 	text,
 	timestamp,
-	uniqueIndex
+	uniqueIndex,
+	uuid
 } from 'drizzle-orm/pg-core';
-import { authRoleEnum } from './enums';
 import type { UserPermissions } from '#lib/constants/permissions';
+import { pagePermission } from './master';
+
+const roleTimestamps = {
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true })
+		.defaultNow()
+		.$onUpdate(() => new Date())
+		.notNull()
+};
+
+/** Assignable roles (system + custom). `user.role` stores `slug`. */
+export const appRole = pgTable('auth_app_role', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	slug: text('slug').notNull().unique(),
+	name: text('name').notNull(),
+	description: text('description'),
+	permissions: jsonb('permissions').$type<UserPermissions | null>(),
+	isSystem: boolean('is_system').default(false).notNull(),
+	sortOrder: integer('sort_order').notNull().default(0),
+	...roleTimestamps
+});
+
+/** Junction: roles bound to page permission records. */
+export const rolePagePermission = pgTable(
+	'auth_role_page_permission',
+	{
+		roleId: uuid('role_id')
+			.notNull()
+			.references(() => appRole.id, { onDelete: 'cascade' }),
+		permissionId: uuid('permission_id')
+			.notNull()
+			.references(() => pagePermission.id, { onDelete: 'cascade' })
+	},
+	(table) => [primaryKey({ columns: [table.roleId, table.permissionId] })]
+);
 
 export const user = pgTable(
 	'auth_user',
@@ -26,8 +62,13 @@ export const user = pgTable(
 		emailVerified: boolean('email_verified').default(false).notNull(),
 		image: text('image'),
 		twoFactorEnabled: boolean('two_factor_enabled').default(false),
-		role: authRoleEnum('role').default('member').notNull(),
+		role: text('role')
+			.notNull()
+			.default('user')
+			.references(() => appRole.slug, { onDelete: 'restrict' }),
 		permissions: jsonb('permissions').$type<UserPermissions | null>(),
+		tier: text('tier').notNull().default('starter'),
+		developerMode: boolean('developer_mode').default(false).notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.defaultNow()
@@ -37,7 +78,7 @@ export const user = pgTable(
 	(table) => [
 		uniqueIndex('auth_user_one_owner_idx')
 			.on(table.role)
-			.where(sql`${table.role} = 'owner'`)
+			.where(sql`${table.role}::text = 'owner'`)
 	]
 );
 
@@ -116,7 +157,31 @@ export const twoFactor = pgTable(
 	(table) => [index('auth_two_factor_user_id_idx').on(table.userId)]
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const appRoleRelations = relations(appRole, ({ many }) => ({
+	users: many(user),
+	pagePermissionLinks: many(rolePagePermission)
+}));
+
+export const rolePagePermissionRelations = relations(rolePagePermission, ({ one }) => ({
+	role: one(appRole, {
+		fields: [rolePagePermission.roleId],
+		references: [appRole.id]
+	}),
+	permission: one(pagePermission, {
+		fields: [rolePagePermission.permissionId],
+		references: [pagePermission.id]
+	})
+}));
+
+export const pagePermissionRelations = relations(pagePermission, ({ many }) => ({
+	roleLinks: many(rolePagePermission)
+}));
+
+export const userRelations = relations(user, ({ one, many }) => ({
+	roleRef: one(appRole, {
+		fields: [user.role],
+		references: [appRole.slug]
+	}),
 	sessions: many(session),
 	accounts: many(account),
 	twofactors: many(twoFactor)

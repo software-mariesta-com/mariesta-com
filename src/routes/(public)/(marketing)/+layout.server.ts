@@ -1,7 +1,7 @@
 import { getPublishedBusinesses } from '#lib/server/businesses';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async () => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	try {
 		const businesses = await getPublishedBusinesses();
 		return {
@@ -15,10 +15,13 @@ export const load: LayoutServerLoad = async () => {
 						linkUrl: b.linkUrl
 					}))
 				)
-			)
+			),
+			user: locals.user
+				? { name: locals.user.name, email: locals.user.email }
+				: null
 		};
 	} catch (err) {
 		console.error('Footer businesses load failed', err);
-		return { businesses: [] };
+		return { businesses: [], user: locals.user ? { name: locals.user.name, email: locals.user.email } : null };
 	}
 };
